@@ -138,8 +138,13 @@ func isNotLaterRippledVersion(source, target string) bool {
 	return false
 }
 
-// txNeedsNetworkID determines if the transaction required a networkID to be valid.
-// Transaction needs networkID if later than restricted ID and build version is >= 1.11.0
+// txNeedsNetworkID determines if the transaction requires a NetworkID to be valid.
+// Returns true if:
+//   - The client's NetworkID is set and greater than RestrictedNetworks (1024), AND
+//   - The connected rippled server version is >= RequiredNetworkIDVersion (1.11.0)
+//
+// This matches rippled's behaviour for preventing replay attacks on sidechains.
+// See: https://github.com/XRPLF/rippled/pull/4370
 func (c *Client) txNeedsNetworkID() (bool, error) {
 	if c.NetworkID != 0 && c.NetworkID > RestrictedNetworks {
 		res, err := c.GetServerInfo(&server.InfoRequest{})
@@ -510,7 +515,10 @@ func (c *Client) submitRequest(req *requests.SubmitRequest) (*requests.SubmitRes
 }
 
 // WaitForTransaction waits for a transaction to be validated in a ledger.
-// It polls the server until the transaction is found or the lastLedgerSequence is reached.
+// It polls the server until the transaction is validated (Validated == true) or the
+// lastLedgerSequence is exceeded, whichever comes first.
+// Returns ErrTransactionNotFound if the transaction is not found by the time lastLedgerSequence passes.
+// Semantics are aligned with the WebSocket client's WaitForTransaction method.
 func (c *Client) WaitForTransaction(txHash string, lastLedgerSequence uint32) (*requests.TxResponse, error) {
 	return c.waitForTransaction(txHash, lastLedgerSequence)
 }
@@ -520,32 +528,34 @@ func (c *Client) waitForTransaction(txHash string, lastLedgerSequence uint32) (*
 	i := 0
 
 	for i < c.cfg.maxRetries {
+		// Request the transaction from the server
+		res, err := c.Request(&requests.TxRequest{
+			Transaction: txHash,
+		})
+		if err != nil && !strings.Contains(err.Error(), txnNotFound) {
+			return nil, err
+		}
+
+		if res != nil {
+			err = res.GetResult(&txResponse)
+			if err != nil {
+				return nil, err
+			}
+
+			// If the transaction is validated, return it immediately
+			if txResponse.Validated {
+				return txResponse, nil
+			}
+		}
+
 		// Get the current ledger index
 		currentLedger, err := c.GetLedgerIndex()
 		if err != nil {
 			return nil, err
 		}
 
-		// Check if the transaction has been included in the current ledger
-		if currentLedger.Int() >= int(lastLedgerSequence) {
-			break
-		}
-
-		// Request the transaction from the server
-		res, err := c.Request(&requests.TxRequest{
-			Transaction: txHash,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		err = res.GetResult(&txResponse)
-		if err != nil {
-			return nil, err
-		}
-
-		// Check if the transaction has been included in the current ledger
-		if txResponse.LedgerIndex.Int() >= int(lastLedgerSequence) {
+		// Check if the transaction has expired (current ledger is past lastLedgerSequence)
+		if currentLedger.Int() > int(lastLedgerSequence) {
 			break
 		}
 

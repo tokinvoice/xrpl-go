@@ -217,3 +217,142 @@ func TestIssue_ToJson(t *testing.T) {
 		})
 	}
 }
+
+// TestIssue_isIssueObject tests the isIssueObject helper function.
+func TestIssue_isIssueObject(t *testing.T) {
+	issue := &Issue{}
+
+	tests := []struct {
+		name     string
+		input    any
+		expected bool
+	}{
+		{
+			name:     "nil",
+			input:    nil,
+			expected: false,
+		},
+		{
+			name:     "string",
+			input:    "not a map",
+			expected: false,
+		},
+		{
+			name:     "empty map",
+			input:    map[string]any{},
+			expected: false,
+		},
+		{
+			name:     "currency only (XRP)",
+			input:    map[string]any{"currency": "XRP"},
+			expected: true,
+		},
+		{
+			name:     "mpt_issuance_id only",
+			input:    map[string]any{"mpt_issuance_id": "00000001B5F762798A53D543A014CAF8B297CFF8F2F937E8"},
+			expected: true,
+		},
+		{
+			name:     "currency and issuer (IOU)",
+			input:    map[string]any{"currency": "USD", "issuer": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh"},
+			expected: true,
+		},
+		{
+			name:     "wrong single key",
+			input:    map[string]any{"foo": "bar"},
+			expected: false,
+		},
+		{
+			name:     "currency with wrong second key",
+			input:    map[string]any{"currency": "USD", "foo": "bar"},
+			expected: false,
+		},
+		{
+			name:     "three keys",
+			input:    map[string]any{"currency": "USD", "issuer": "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", "extra": "key"},
+			expected: false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := issue.isIssueObject(tc.input)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+// TestIssue_FromJSON_InvalidInputs tests error handling for invalid inputs.
+func TestIssue_FromJSON_InvalidInputs(t *testing.T) {
+	issue := &Issue{}
+
+	tests := []struct {
+		name    string
+		input   any
+		wantErr error
+	}{
+		{
+			name:    "nil input",
+			input:   nil,
+			wantErr: ErrInvalidIssueObject,
+		},
+		{
+			name:    "string input",
+			input:   "not a map",
+			wantErr: ErrInvalidIssueObject,
+		},
+		{
+			name:    "integer input",
+			input:   123,
+			wantErr: ErrInvalidIssueObject,
+		},
+		{
+			name:    "slice input",
+			input:   []string{"a", "b"},
+			wantErr: ErrInvalidIssueObject,
+		},
+		{
+			name:    "empty map",
+			input:   map[string]any{},
+			wantErr: ErrInvalidIssueObject,
+		},
+		{
+			name:    "map with wrong keys",
+			input:   map[string]any{"foo": "bar"},
+			wantErr: ErrInvalidIssueObject,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := issue.FromJSON(tc.input)
+			require.ErrorIs(t, err, tc.wantErr)
+		})
+	}
+}
+
+// TestIssue_FromJSON_InvalidMPTIssuanceID tests error handling for invalid MPT issuance IDs.
+func TestIssue_FromJSON_InvalidMPTIssuanceID(t *testing.T) {
+	issue := &Issue{}
+
+	tests := []struct {
+		name  string
+		input map[string]any
+	}{
+		{
+			name:  "non-hex mpt_issuance_id",
+			input: map[string]any{"mpt_issuance_id": "not-hex-string"},
+		},
+		{
+			name:  "odd-length hex mpt_issuance_id",
+			input: map[string]any{"mpt_issuance_id": "ABC"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := issue.FromJSON(tc.input)
+			require.Error(t, err)
+		})
+	}
+}

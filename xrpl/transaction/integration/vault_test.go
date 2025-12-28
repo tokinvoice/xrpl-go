@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestIntegrationVault_Websocket tests the XLS-65 Vault transactions on the lending devnet.
-// It creates a vault, deposits funds, withdraws funds, updates settings, and deletes the vault.
+// TestIntegrationVault_Websocket tests basic XLS-65 VaultCreate on the lending devnet.
+// For a full vault lifecycle test (create, deposit, withdraw, update), see TestIntegrationVaultFullCycle_Websocket.
 func TestIntegrationVault_Websocket(t *testing.T) {
 	env := integration.GetLendingDevnetWebsocketEnv(t)
 	client := websocket.NewClient(websocket.NewClientConfig().WithHost(env.Host).WithFaucetProvider(env.FaucetProvider))
@@ -51,7 +51,8 @@ func TestIntegrationVault_Websocket(t *testing.T) {
 	})
 }
 
-// TestIntegrationVaultFullCycle_Websocket tests the complete vault lifecycle.
+// TestIntegrationVaultFullCycle_Websocket tests the vault lifecycle: VaultCreate → VaultDeposit → VaultWithdraw → VaultSet.
+// Note: VaultDelete is not exercised because deleting the vault requires draining all shares and waiting out any withdrawal policy delays.
 func TestIntegrationVaultFullCycle_Websocket(t *testing.T) {
 	env := integration.GetLendingDevnetWebsocketEnv(t)
 	client := websocket.NewClient(websocket.NewClientConfig().WithHost(env.Host).WithFaucetProvider(env.FaucetProvider))

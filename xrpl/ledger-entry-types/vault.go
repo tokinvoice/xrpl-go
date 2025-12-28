@@ -58,7 +58,7 @@ type Vault struct {
 	LossUnrealized string `json:",omitempty"`
 	// The MPT Issuance ID for the share tokens issued by this vault.
 	MPTokenIssuanceID types.Hash192
-	// The withdrawal policy for this vault (0 = instant, 1 = stranded).
+	// The withdrawal policy strategy code for this vault; see XLS-65 docs for valid values.
 	WithdrawalPolicy uint8
 	// The maximum amount of assets the vault can hold.
 	AssetsMaximum string `json:",omitempty"`

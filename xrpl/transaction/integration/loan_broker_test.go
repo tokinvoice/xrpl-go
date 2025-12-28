@@ -11,8 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestIntegrationLoanBroker_Websocket tests the XLS-66 LoanBroker transactions on the lending devnet.
-// It creates a vault, attaches a loan broker, deposits cover, withdraws cover, and deletes the broker.
+// TestIntegrationLoanBroker_Websocket tests XLS-66 LoanBroker transactions on the lending devnet.
+// Flow: VaultCreate → VaultDeposit → LoanBrokerSet → LoanBrokerCoverDeposit → LoanBrokerCoverWithdraw.
+// Note: LoanBrokerDelete is not exercised because it requires no outstanding loans and withdrawing all cover.
 func TestIntegrationLoanBroker_Websocket(t *testing.T) {
 	env := integration.GetLendingDevnetWebsocketEnv(t)
 	client := websocket.NewClient(websocket.NewClientConfig().WithHost(env.Host).WithFaucetProvider(env.FaucetProvider))
@@ -153,5 +154,43 @@ func TestIntegrationLoanBroker_Websocket(t *testing.T) {
 		require.NoError(t, err)
 		t.Logf("Withdrew 5 XRP first-loss capital")
 	})
+}
+
+// TestIntegrationLoanLifecycle_Websocket is a placeholder for a full loan lifecycle test.
+// This test is skipped because it requires complex multi-signature setup between borrower and lender.
+//
+// A full implementation would need:
+// 1. Two funded wallets: borrower and lender
+// 2. VaultCreate + VaultDeposit by lender
+// 3. LoanBrokerSet by lender
+// 4. LoanBrokerCoverDeposit by lender
+// 5. LoanSet with multi-signature from both borrower and lender (CounterpartySignature)
+// 6. LoanManage to test flag toggling (impair/unimpair/default)
+// 7. LoanPay to make loan payments
+// 8. LoanDelete (if loan is fully repaid)
+//
+// See xls-65-66.md for detailed transaction specifications.
+func TestIntegrationLoanLifecycle_Websocket(t *testing.T) {
+	t.Skip("Skipped: LoanSet requires multi-signature between borrower and lender (CounterpartySignature)")
+
+	// TODO: Implement when multi-signature support is available in the test runner
+	// env := integration.GetLendingDevnetWebsocketEnv(t)
+	// client := websocket.NewClient(websocket.NewClientConfig().WithHost(env.Host).WithFaucetProvider(env.FaucetProvider))
+	// ...
+}
+
+// TestIntegrationLoanBrokerCoverClawback_Websocket is a placeholder for cover clawback testing.
+// This test is skipped because LoanBrokerCoverClawback can only be performed by the asset issuer.
+//
+// For XRP vaults, clawback is not applicable (XRP cannot be clawed back).
+// For IOU vaults, the test would require:
+// 1. An issuer account that has issued a token
+// 2. A vault holding that token
+// 3. A loan broker with cover deposited in that token
+// 4. The issuer calling LoanBrokerCoverClawback
+func TestIntegrationLoanBrokerCoverClawback_Websocket(t *testing.T) {
+	t.Skip("Skipped: LoanBrokerCoverClawback requires asset issuer privileges and IOU-based vault")
+
+	// TODO: Implement with IOU-based vault setup
 }
 
