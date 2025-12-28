@@ -52,3 +52,6 @@ debug
 
 # Coverage report
 coverage.html
+
+# XLS-65/66 JavaScript test folder (reference implementation tests)
+xls65-66-tests/

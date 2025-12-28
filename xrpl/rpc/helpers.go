@@ -509,6 +509,12 @@ func (c *Client) submitRequest(req *requests.SubmitRequest) (*requests.SubmitRes
 	return &subRes, nil
 }
 
+// WaitForTransaction waits for a transaction to be validated in a ledger.
+// It polls the server until the transaction is found or the lastLedgerSequence is reached.
+func (c *Client) WaitForTransaction(txHash string, lastLedgerSequence uint32) (*requests.TxResponse, error) {
+	return c.waitForTransaction(txHash, lastLedgerSequence)
+}
+
 func (c *Client) waitForTransaction(txHash string, lastLedgerSequence uint32) (*requests.TxResponse, error) {
 	var txResponse *requests.TxResponse
 	i := 0

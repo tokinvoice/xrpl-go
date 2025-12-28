@@ -18,6 +18,8 @@ const (
 	EscrowEntry                          EntryType = "Escrow"
 	FeeSettingsEntry                     EntryType = "FeeSettings"
 	LedgerHashesEntry                    EntryType = "LedgerHashes"
+	LoanEntry                            EntryType = "Loan"
+	LoanBrokerEntry                      EntryType = "LoanBroker"
 	MPTokenEntry                         EntryType = "MPToken"
 	MPTokenIssuanceEntry                 EntryType = "MPTokenIssuance" // #nosec G101
 	NegativeUNLEntry                     EntryType = "NegativeUNL"
@@ -30,6 +32,7 @@ const (
 	RippleStateEntry                     EntryType = "RippleState"
 	SignerListEntry                      EntryType = "SignerList"
 	TicketEntry                          EntryType = "Ticket"
+	VaultEntry                           EntryType = "Vault"
 	XChainOwnedClaimIDEntry              EntryType = "XChainOwnedClaimID"
 	XChainOwnedCreateAccountClaimIDEntry EntryType = "XChainOwnedCreateAccountClaimID"
 )
@@ -75,12 +78,16 @@ func EmptyLedgerObject(t string) (Object, error) {
 		return &Escrow{}, nil
 	case FeeSettingsEntry:
 		return &FeeSettings{}, nil
+	case LedgerHashesEntry:
+		return &Hashes{}, nil
+	case LoanEntry:
+		return &Loan{}, nil
+	case LoanBrokerEntry:
+		return &LoanBroker{}, nil
 	case MPTokenEntry:
 		return &MPToken{}, nil
 	case MPTokenIssuanceEntry:
 		return &MPTokenIssuance{}, nil
-	case LedgerHashesEntry:
-		return &Hashes{}, nil
 	case NegativeUNLEntry:
 		return &NegativeUNL{}, nil
 	case NFTokenOfferEntry:
@@ -101,6 +108,8 @@ func EmptyLedgerObject(t string) (Object, error) {
 		return &SignerList{}, nil
 	case TicketEntry:
 		return &Ticket{}, nil
+	case VaultEntry:
+		return &Vault{}, nil
 	case XChainOwnedClaimIDEntry:
 		return &XChainOwnedClaimID{}, nil
 	case XChainOwnedCreateAccountClaimIDEntry:

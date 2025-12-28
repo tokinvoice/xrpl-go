@@ -83,3 +83,32 @@ func (c *Currency) fromString(str string) ([]byte, error) {
 
 	return bytes, nil
 }
+
+// bytesToCurrencyString converts currency bytes to a string representation.
+// This is used by Issue.ToJSON when it already has the currency bytes.
+func (c *Currency) bytesToCurrencyString(currencyBytes []byte) (string, error) {
+	if bytes.Equal(currencyBytes, XRPBytes) {
+		return "XRP", nil
+	}
+
+	// Check if bytes has exactly 3 non-zero bytes at positions 12-14
+	nonZeroCount := 0
+	var currencyStr string
+	for i := 0; i < len(currencyBytes); i++ {
+		if currencyBytes[i] != 0 {
+			if i >= 12 && i <= 14 {
+				nonZeroCount++
+				currencyStr += string(currencyBytes[i])
+			} else {
+				nonZeroCount = 0
+				break
+			}
+		}
+	}
+
+	if nonZeroCount == 3 {
+		return currencyStr, nil
+	}
+
+	return hex.EncodeToString(currencyBytes), nil
+}

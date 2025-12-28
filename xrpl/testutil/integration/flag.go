@@ -33,3 +33,25 @@ func GetRPCEnv(t *testing.T) Env {
 
 	return IntegrationRPCEnvs[EnvKey(os.Getenv(IntegrationEnvVar))]
 }
+
+// GetLendingDevnetWebsocketEnv returns the lending devnet websocket environment.
+// If the environment is not set to "lendingdevnet", it skips the tests.
+// This function is intended for XLS-65/XLS-66 tests that require the lending devnet.
+func GetLendingDevnetWebsocketEnv(t *testing.T) Env {
+	if os.Getenv(IntegrationEnvVar) != string(LendingDevnetEnv) {
+		t.Skip("skipping lending devnet integration tests (set INTEGRATION=lendingdevnet to run)")
+	}
+
+	return IntegrationWebsocketEnvs[LendingDevnetEnv]
+}
+
+// GetLendingDevnetRPCEnv returns the lending devnet RPC environment.
+// If the environment is not set to "lendingdevnet", it skips the tests.
+// This function is intended for XLS-65/XLS-66 tests that require the lending devnet.
+func GetLendingDevnetRPCEnv(t *testing.T) Env {
+	if os.Getenv(IntegrationEnvVar) != string(LendingDevnetEnv) {
+		t.Skip("skipping lending devnet integration tests (set INTEGRATION=lendingdevnet to run)")
+	}
+
+	return IntegrationRPCEnvs[LendingDevnetEnv]
+}

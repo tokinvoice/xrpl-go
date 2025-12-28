@@ -345,6 +345,24 @@ var (
 	// ErrInvalidAmountIssuer is returned when the amount issuer is invalid.
 	ErrInvalidAmountIssuer = errors.New("invalid amount issuer")
 
+	// vault
+
+	// ErrInvalidAsset is returned when the Asset field is invalid or missing.
+	ErrInvalidAsset = errors.New("vault: invalid or missing Asset")
+	// ErrInvalidVaultID is returned when the VaultID is invalid or missing.
+	ErrInvalidVaultID = errors.New("vault: invalid or missing VaultID")
+	// ErrInvalidAmount is returned when the Amount field is invalid or missing.
+	ErrInvalidAmount = errors.New("vault: invalid or missing Amount")
+
+	// loan
+
+	// ErrInvalidLoanBrokerID is returned when the LoanBrokerID is invalid or missing.
+	ErrInvalidLoanBrokerID = errors.New("loan: invalid or missing LoanBrokerID")
+	// ErrInvalidLoanID is returned when the LoanID is invalid or missing.
+	ErrInvalidLoanID = errors.New("loan: invalid or missing LoanID")
+	// ErrInvalidPrincipalRequested is returned when the PrincipalRequested is invalid or missing.
+	ErrInvalidPrincipalRequested = errors.New("loan: invalid or missing PrincipalRequested")
+
 	// ErrAMMAtLeastOneAssetMustBeNonXRP is returned when both assets are XRP; at least one asset must be non-XRP.
 	ErrAMMAtLeastOneAssetMustBeNonXRP = errors.New("at least one of the assets must be non-XRP")
 	// ErrAMMAuthAccountsTooMany is returned when more than four AuthAccount objects are provided.
