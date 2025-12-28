@@ -37,10 +37,18 @@ func NewRunner(t *testing.T, client Client, config *RunnerConfig) *Runner {
 // Setup creates a new websocket client and generates the required number of wallets.
 // It also connects to the websocket and starts the client.
 // For every wallet, it will create a new account and fund it with the faucet.
+// It also fetches the NetworkID from the server and sets it on the client.
 func (r *Runner) Setup() error {
 	if connectable, ok := r.client.(Connectable); ok {
 		err := connectable.Connect()
 		if err != nil {
+			return err
+		}
+	}
+
+	// Fetch and set NetworkID from server
+	if networkIDSetter, ok := r.client.(NetworkIDSetter); ok {
+		if err := networkIDSetter.FetchAndSetNetworkID(); err != nil {
 			return err
 		}
 	}
@@ -86,6 +94,19 @@ func (r *Runner) TestTransaction(flatTx *transaction.FlatTransaction, signer *wa
 	return tx, nil
 }
 
+// TestTransactionAndWait submits a signed transaction, waits for it to be validated, and validates the result.
+func (r *Runner) TestTransactionAndWait(flatTx *transaction.FlatTransaction, signer *wallet.Wallet, expectedEngineResult string, opts *TestTransactionOptions) (*transactions.TxResponse, error) {
+	tx, _, err := r.processTransactionAndWait(flatTx, signer, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	require.NoError(r.t, err)
+	require.Equal(r.t, expectedEngineResult, tx.Meta.TransactionResult)
+
+	return tx, nil
+}
+
 // TestMultisigTransaction submits a multisigned transaction and validates the result.
 // If validate is nil, the transaction is not validated.
 func (r *Runner) TestMultisigTransaction(blob string, expectedEngineResult string) (*transactions.SubmitMultisignedResponse, error) {
@@ -123,6 +144,8 @@ func (r *Runner) processTransaction(flatTx *transaction.FlatTransaction, signer 
 
 	for {
 		if opts == nil || !opts.SkipAutofill {
+			// Clear Sequence to force re-fetch on retry
+			delete(*flatTx, "Sequence")
 			err := r.client.Autofill(flatTx)
 			if err != nil {
 				return nil, "", err
@@ -143,5 +166,63 @@ func (r *Runner) processTransaction(flatTx *transaction.FlatTransaction, signer 
 			return tx, hash, nil
 		}
 		attempts++
+	}
+}
+
+func (r *Runner) processTransactionAndWait(flatTx *transaction.FlatTransaction, signer *wallet.Wallet, opts *TestTransactionOptions) (*transactions.TxResponse, string, error) {
+	attempts := 0
+
+	for {
+		if opts == nil || !opts.SkipAutofill {
+			// Clear Sequence to force re-fetch on retry
+			delete(*flatTx, "Sequence")
+			err := r.client.Autofill(flatTx)
+			if err != nil {
+				return nil, "", err
+			}
+		}
+
+		blob, txHash, err := signer.Sign(*flatTx)
+		if err != nil {
+			return nil, txHash, err
+		}
+
+		// Get LastLedgerSequence from the transaction
+		lastLedgerSeq, ok := (*flatTx)["LastLedgerSequence"].(uint32)
+		if !ok {
+			// Try float64 (JSON unmarshaling)
+			if lls, ok := (*flatTx)["LastLedgerSequence"].(float64); ok {
+				lastLedgerSeq = uint32(lls)
+			}
+		}
+
+		// Submit without waiting to check engine result
+		submitResp, err := r.client.SubmitTxBlob(blob, true)
+		if err != nil {
+			return nil, txHash, err
+		}
+
+		// If tefPAST_SEQ, retry with new sequence
+		if submitResp.EngineResult == transaction.TefPAST_SEQ.String() && attempts < r.config.MaxRetries {
+			attempts++
+			continue
+		}
+
+		// If not success, return a response with the engine result
+		if submitResp.EngineResult != "tesSUCCESS" {
+			return &transactions.TxResponse{
+				Meta: transaction.TxMetadataBuilder{
+					TransactionResult: submitResp.EngineResult,
+				},
+			}, txHash, nil
+		}
+
+		// Wait for the transaction to be validated
+		tx, err := r.client.WaitForTransaction(txHash, lastLedgerSeq)
+		if err != nil {
+			return nil, txHash, err
+		}
+
+		return tx, txHash, nil
 	}
 }

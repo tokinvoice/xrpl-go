@@ -12,6 +12,12 @@ import (
 const (
 	// MPTIssuanceIDBytesLength is the number of bytes for an MPT issuance ID.
 	MPTIssuanceIDBytesLength = 24
+	// CurrencyBytesLength is the number of bytes for a currency code.
+	CurrencyBytesLength = 20
+	// AccountIDBytesLength is the number of bytes for an account ID.
+	AccountIDBytesLength = 20
+	// MPTSequenceBytesLength is the number of bytes for an MPT sequence.
+	MPTSequenceBytesLength = 4
 )
 
 var (
@@ -26,6 +32,9 @@ var (
 	ErrMissingIssueLengthOption = errors.New("missing length option for Issue.ToJSON")
 	// XRPBytes is the serialized byte representation for native XRP (zero-value currency issuer).
 	XRPBytes = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
+	// NoAccountBytes is the serialized byte representation for the "no account" placeholder used in MPT.
+	// This is 0x0000000000000000000000000000000000000001
+	NoAccountBytes = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
 )
 
 // Issue represents an XRPL Issue, which is essentially an AccountID.
@@ -87,46 +96,80 @@ func (i *Issue) FromJSON(json any) ([]byte, error) {
 	return currencyBytes, nil
 }
 
-// ToJSON converts an AccountID byte slice back to a classic address string.
-// It uses the addresscodec package to encode the byte slice.
-// If the input is not a valid AccountID byte slice, it returns an error.
+// ToJSON converts serialized Issue bytes back to a JSON object.
+// The Issue type is self-describing:
+// - XRP: 20 bytes of zeros
+// - IOU: 20 bytes currency + 20 bytes issuer account
+// - MPT: 20 bytes account + 20 bytes NO_ACCOUNT + 4 bytes sequence
+// The opts parameter is optional and can be used to specify the length hint.
 func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
-	if len(opts) == 0 {
-		return nil, ErrMissingIssueLengthOption
-	}
-
 	currencyCodec := &Currency{}
 
-	if i.length == MPTIssuanceIDBytesLength || opts[0] == MPTIssuanceIDBytesLength {
-		b, err := p.ReadBytes(MPTIssuanceIDBytesLength)
-		if err != nil {
-			return nil, err
-		}
-
-		id := hex.EncodeToString(b)
-
-		return map[string]any{
-			"mpt_issuance_id": strings.ToUpper(id),
-		}, nil
+	// If a length hint is provided and it's MPT length, handle MPT directly
+	if len(opts) > 0 && opts[0] == MPTIssuanceIDBytesLength {
+		return i.parseMPTIssue(p)
 	}
 
-	currencyStr, err := currencyCodec.ToJSON(p, opts...)
+	// Read the first 20 bytes (currency or account for MPT)
+	currencyOrAccount, err := p.ReadBytes(CurrencyBytesLength)
 	if err != nil {
 		return nil, err
 	}
 
-	if currencyStr == "XRP" {
+	// Check if it's XRP (all zeros)
+	isXRP := true
+	for _, b := range currencyOrAccount {
+		if b != 0 {
+			isXRP = false
+			break
+		}
+	}
+
+	if isXRP {
 		return map[string]any{
 			"currency": "XRP",
 		}, nil
 	}
 
-	issuer, err := p.ReadBytes(20)
+	// Read the next 20 bytes (issuer account or NO_ACCOUNT for MPT)
+	issuerOrNoAccount, err := p.ReadBytes(AccountIDBytesLength)
 	if err != nil {
 		return nil, err
 	}
 
-	address, err := addresscodec.Encode(issuer, []byte{addresscodec.AccountAddressPrefix}, addresscodec.AccountAddressLength)
+	// Check if it's NO_ACCOUNT (MPT indicator)
+	isNoAccount := true
+	for idx, b := range issuerOrNoAccount {
+		if b != NoAccountBytes[idx] {
+			isNoAccount = false
+			break
+		}
+	}
+
+	if isNoAccount {
+		// This is an MPT - read the 4-byte sequence
+		sequence, err := p.ReadBytes(MPTSequenceBytesLength)
+		if err != nil {
+			return nil, err
+		}
+
+		// Convert from little-endian to big-endian for the mpt_issuance_id
+		// The mpt_issuance_id format is: sequence (4 bytes big-endian) + account (20 bytes)
+		sequenceBE := []byte{sequence[3], sequence[2], sequence[1], sequence[0]}
+		mptIssuanceID := append(sequenceBE, currencyOrAccount...)
+
+		return map[string]any{
+			"mpt_issuance_id": strings.ToUpper(hex.EncodeToString(mptIssuanceID)),
+		}, nil
+	}
+
+	// This is an IOU - convert currency bytes to string
+	currencyStr, err := currencyCodec.bytesToCurrencyString(currencyOrAccount)
+	if err != nil {
+		return nil, err
+	}
+
+	address, err := addresscodec.Encode(issuerOrNoAccount, []byte{addresscodec.AccountAddressPrefix}, addresscodec.AccountAddressLength)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +177,20 @@ func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
 	return map[string]any{
 		"currency": currencyStr,
 		"issuer":   address,
+	}, nil
+}
+
+// parseMPTIssue parses an MPT issue from the binary parser.
+func (i *Issue) parseMPTIssue(p interfaces.BinaryParser) (any, error) {
+	b, err := p.ReadBytes(MPTIssuanceIDBytesLength)
+	if err != nil {
+		return nil, err
+	}
+
+	id := hex.EncodeToString(b)
+
+	return map[string]any{
+		"mpt_issuance_id": strings.ToUpper(id),
 	}, nil
 }
 

@@ -21,10 +21,16 @@ type Client interface {
 	SubmitTxBlob(txBlob string, failHard bool) (*transactions.SubmitResponse, error)
 	SubmitTxBlobAndWait(txBlob string, failHard bool) (*transactions.TxResponse, error)
 	SubmitMultisigned(blob string, validate bool) (*transactions.SubmitMultisignedResponse, error)
+	WaitForTransaction(txHash string, lastLedgerSequence uint32) (*transactions.TxResponse, error)
 }
 
 // Connectable defines methods to connect and disconnect the integration client.
 type Connectable interface {
 	Connect() error
 	Disconnect() error
+}
+
+// NetworkIDSetter defines methods to fetch and set the NetworkID from the server.
+type NetworkIDSetter interface {
+	FetchAndSetNetworkID() error
 }

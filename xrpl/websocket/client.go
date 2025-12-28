@@ -102,6 +102,18 @@ func (c *Client) FaucetProvider() commonconstants.FaucetProvider {
 	return c.cfg.faucetProvider
 }
 
+// FetchAndSetNetworkID fetches the NetworkID from the server and sets it on the client.
+// This is required for networks with NetworkID > 1024 (restricted networks).
+func (c *Client) FetchAndSetNetworkID() error {
+	res, err := c.GetServerInfo(&server.InfoRequest{})
+	if err != nil {
+		return err
+	}
+
+	c.NetworkID = uint32(res.Info.NetworkID)
+	return nil
+}
+
 // Autofill fills in the missing fields in a transaction.
 func (c *Client) Autofill(tx *transaction.FlatTransaction) error {
 	if err := c.setValidTransactionAddresses(tx); err != nil {
@@ -345,22 +357,17 @@ func (c *Client) SubmitTxAndWait(tx transaction.FlatTransaction, opts *wstypes.S
 	return c.SubmitTxBlobAndWait(txBlob, opts.FailHard)
 }
 
+// WaitForTransaction waits for a transaction to be validated in a ledger.
+// It polls the server until the transaction is found or the lastLedgerSequence is reached.
+func (c *Client) WaitForTransaction(txHash string, lastLedgerSequence uint32) (*requests.TxResponse, error) {
+	return c.waitForTransaction(txHash, lastLedgerSequence)
+}
+
 func (c *Client) waitForTransaction(txHash string, lastLedgerSequence uint32) (*requests.TxResponse, error) {
 	var txResponse *requests.TxResponse
 	i := 0
 
 	for i < c.cfg.maxRetries {
-		// Get the current ledger index
-		currentLedger, err := c.GetLedgerIndex()
-		if err != nil {
-			return nil, err
-		}
-
-		// Check if the transaction has been included in the current ledger
-		if currentLedger.Int() >= int(lastLedgerSequence) {
-			break
-		}
-
 		// Request the transaction from the server
 		res, err := c.Request(&requests.TxRequest{
 			Transaction: txHash,
@@ -375,10 +382,21 @@ func (c *Client) waitForTransaction(txHash string, lastLedgerSequence uint32) (*
 				return nil, err
 			}
 
-			// Check if the transaction has been included in the current ledger
-			if txResponse.LedgerIndex.Int() >= int(lastLedgerSequence) {
-				break
+			// If the transaction is validated, return it
+			if txResponse.Validated {
+				return txResponse, nil
 			}
+		}
+
+		// Get the current ledger index
+		currentLedger, err := c.GetLedgerIndex()
+		if err != nil {
+			return nil, err
+		}
+
+		// Check if the transaction has expired (current ledger is past lastLedgerSequence)
+		if currentLedger.Int() > int(lastLedgerSequence) {
+			break
 		}
 
 		// Wait for the retry delay before retrying

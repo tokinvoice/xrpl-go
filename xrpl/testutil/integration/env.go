@@ -14,6 +14,8 @@ const (
 	TestnetEnv EnvKey = "testnet"
 	// DevnetEnv is the environment key for the developer network.
 	DevnetEnv EnvKey = "devnet"
+	// LendingDevnetEnv is the environment key for the lending devnet (XLS-65/XLS-66).
+	LendingDevnetEnv EnvKey = "lendingdevnet"
 )
 
 // IntegrationWebsocketEnvs is the map of websocket integration environments.
@@ -30,6 +32,10 @@ var IntegrationWebsocketEnvs = map[EnvKey]Env{
 		Host:           "wss://s.devnet.rippletest.net:51233",
 		FaucetProvider: faucet.NewDevnetFaucetProvider(),
 	},
+	LendingDevnetEnv: {
+		Host:           "wss://lend.devnet.rippletest.net:51233",
+		FaucetProvider: faucet.NewLendingDevnetFaucetProvider(),
+	},
 }
 
 // IntegrationRPCEnvs is the map of RPC integration environments.
@@ -45,6 +51,10 @@ var IntegrationRPCEnvs = map[EnvKey]Env{
 	DevnetEnv: {
 		Host:           "https://s.devnet.rippletest.net:51234",
 		FaucetProvider: faucet.NewDevnetFaucetProvider(),
+	},
+	LendingDevnetEnv: {
+		Host:           "https://lend.devnet.rippletest.net:51234",
+		FaucetProvider: faucet.NewLendingDevnetFaucetProvider(),
 	},
 }
 
