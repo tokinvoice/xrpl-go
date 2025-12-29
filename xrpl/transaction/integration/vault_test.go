@@ -31,7 +31,7 @@ func TestIntegrationVault_Websocket(t *testing.T) {
 	// Step 1: Create a vault
 	t.Run("VaultCreate", func(t *testing.T) {
 		withdrawalPolicy := transaction.VaultStrategyFirstComeFirstServe
-		assetsMax := "1000000000000" // 1M XRP in drops
+		assetsMax := uint64(1000000000000) // 1M XRP in drops
 		vaultCreate := &transaction.VaultCreate{
 			BaseTx: transaction.BaseTx{
 				Account: owner.GetAddress(),
@@ -72,7 +72,7 @@ func TestIntegrationVaultFullCycle_Websocket(t *testing.T) {
 	// Step 1: VaultCreate
 	t.Run("VaultCreate", func(t *testing.T) {
 		withdrawalPolicy := transaction.VaultStrategyFirstComeFirstServe
-		assetsMax := "1000000000000" // 1M XRP in drops
+		assetsMax := uint64(1000000000000) // 1M XRP in drops
 		vaultCreate := &transaction.VaultCreate{
 			BaseTx: transaction.BaseTx{
 				Account: owner.GetAddress(),
@@ -146,7 +146,7 @@ func TestIntegrationVaultFullCycle_Websocket(t *testing.T) {
 			t.Skip("No vault ID from previous step")
 		}
 
-		newMax := "2000000000000" // 2M XRP in drops
+		newMax := uint64(2000000000000) // 2M XRP in drops
 		vaultSet := &transaction.VaultSet{
 			BaseTx: transaction.BaseTx{
 				Account: owner.GetAddress(),
