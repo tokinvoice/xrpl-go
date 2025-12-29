@@ -3193,6 +3193,16 @@
       }
     ],
     [
+      "Book",
+      {
+        "nth": 36,
+        "isVLEncoded": false,
+        "isSerialized": true,
+        "isSigningField": true,
+        "type": "STObject"
+      }
+    ],
+    [
       "CounterpartySignature",
       {
         "isSerialized": true,
@@ -3471,7 +3481,6 @@
     "telREQUIRES_NETWORK_ID": -385,
     "telNETWORK_ID_MAKES_TX_NON_CANONICAL": -384,
     "telENV_RPC_FAILED": -383,
-
     "temMALFORMED": -299,
     "temBAD_AMOUNT": -298,
     "temBAD_CURRENCY": -297,
@@ -3521,7 +3530,6 @@
     "temEMPTY_DID": -254,
     "temARRAY_EMPTY": -253,
     "temARRAY_TOO_LARGE": -252,
-
     "tefFAILURE": -199,
     "tefALREADY": -198,
     "tefBAD_ADD_AUTH": -197,
@@ -3543,7 +3551,6 @@
     "tefTOO_BIG": -181,
     "tefNO_TICKET": -180,
     "tefNFTOKEN_IS_NOT_TRANSFERABLE": -179,
-
     "terRETRY": -99,
     "terFUNDS_SPENT": -98,
     "terINSUF_FEE_B": -97,
@@ -3557,9 +3564,7 @@
     "terQUEUED": -89,
     "terPRE_TICKET": -88,
     "terNO_AMM": -87,
-
     "tesSUCCESS": 0,
-
     "tecBAD_CREDENTIALS": 193,
     "tecCLAIM": 100,
     "tecPATH_PARTIAL": 101,
@@ -3665,15 +3670,6 @@
     "EscrowCreate": 1,
     "EscrowFinish": 2,
     "Invalid": -1,
-    "LoanBrokerCoverClawback": 78,
-    "LoanBrokerCoverDeposit": 76,
-    "LoanBrokerCoverWithdraw": 77,
-    "LoanBrokerDelete": 75,
-    "LoanBrokerSet": 74,
-    "LoanDelete": 81,
-    "LoanManage": 82,
-    "LoanPay": 84,
-    "LoanSet": 80,
     "NFTokenAcceptOffer": 29,
     "NFTokenBurn": 26,
     "NFTokenCancelOffer": 28,
@@ -3704,12 +3700,6 @@
     "TicketCreate": 10,
     "TrustSet": 20,
     "UNLModify": 102,
-    "VaultClawback": 70,
-    "VaultCreate": 65,
-    "VaultDelete": 67,
-    "VaultDeposit": 68,
-    "VaultSet": 66,
-    "VaultWithdraw": 69,
     "XChainAccountCreateCommit": 44,
     "XChainAddAccountCreateAttestation": 46,
     "XChainAddClaimAttestation": 45,
