@@ -39,12 +39,18 @@ var (
 // It is encoded as 12 bytes: 8-byte signed mantissa + 4-byte signed exponent, both big-endian.
 type Number struct{}
 
-// FromJSON parses a number string and returns the 12-byte serialized representation.
+// FromJSON parses a number string or numeric type and returns the 12-byte serialized representation.
 func (n *Number) FromJSON(json any) ([]byte, error) {
 	var val string
 	switch v := json.(type) {
 	case string:
 		val = v
+	case uint64:
+		val = strconv.FormatUint(v, 10)
+	case int64:
+		val = strconv.FormatInt(v, 10)
+	case int:
+		val = strconv.Itoa(v)
 	default:
 		return nil, ErrInvalidNumberString
 	}
