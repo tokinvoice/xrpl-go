@@ -1,6 +1,10 @@
 package transaction
 
-import "github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+import (
+	"strconv"
+
+	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+)
 
 // VaultSet modifies an existing vault's parameters (XLS-65).
 //
@@ -24,7 +28,7 @@ type VaultSet struct {
 	// Optional metadata for the vault.
 	Data *string `json:",omitempty"`
 	// Maximum amount of assets the vault can hold.
-	AssetsMaximum *string `json:",omitempty"`
+	AssetsMaximum *uint64 `json:",omitempty"`
 	// Optional domain ID for permissioned domains.
 	DomainID *types.Hash256 `json:",omitempty"`
 }
@@ -46,7 +50,7 @@ func (v *VaultSet) Flatten() FlatTransaction {
 	}
 
 	if v.AssetsMaximum != nil {
-		flattened["AssetsMaximum"] = *v.AssetsMaximum
+		flattened["AssetsMaximum"] = strconv.FormatUint(*v.AssetsMaximum, 10)
 	}
 
 	if v.DomainID != nil {

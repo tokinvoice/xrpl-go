@@ -34,7 +34,7 @@ func TestIntegrationLoanBroker_Websocket(t *testing.T) {
 	// Step 1: Create a vault (prerequisite for LoanBroker)
 	t.Run("VaultCreate", func(t *testing.T) {
 		withdrawalPolicy := transaction.VaultStrategyFirstComeFirstServe
-		assetsMax := "1000000000000" // 1M XRP
+		assetsMax := uint64(1000000000000) // 1M XRP
 		vaultCreate := &transaction.VaultCreate{
 			BaseTx: transaction.BaseTx{
 				Account: lender.GetAddress(),
@@ -85,10 +85,10 @@ func TestIntegrationLoanBroker_Websocket(t *testing.T) {
 			t.Skip("No vault ID")
 		}
 
-		debtMax := "100000000000" // 100k XRP in drops
-		mgmtFee := uint32(100)    // 0.1%
-		coverMin := uint32(5000)  // 5%
-		coverLiq := uint32(2500)  // 2.5%
+		debtMax := uint64(100000000000) // 100k XRP in drops
+		mgmtFee := uint32(100)          // 0.1%
+		coverMin := uint32(5000)        // 5%
+		coverLiq := uint32(2500)        // 2.5%
 		loanBrokerSet := &transaction.LoanBrokerSet{
 			BaseTx: transaction.BaseTx{
 				Account: lender.GetAddress(),

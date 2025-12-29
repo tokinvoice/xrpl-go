@@ -1,6 +1,10 @@
 package transaction
 
-import "github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+import (
+	"strconv"
+
+	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+)
 
 // LoanBrokerSet creates or modifies a LoanBroker object (XLS-66).
 // A LoanBroker manages loans from a vault.
@@ -31,7 +35,7 @@ type LoanBrokerSet struct {
 	// Fee rate charged for managing loans (basis points).
 	ManagementFeeRate *uint32 `json:",omitempty"`
 	// Maximum total debt allowed for this loan broker.
-	DebtMaximum *string `json:",omitempty"`
+	DebtMaximum *uint64 `json:",omitempty"`
 	// Minimum cover rate required (basis points).
 	CoverRateMinimum *uint32 `json:",omitempty"`
 	// Cover rate at which liquidation can occur (basis points).
@@ -63,7 +67,7 @@ func (l *LoanBrokerSet) Flatten() FlatTransaction {
 	}
 
 	if l.DebtMaximum != nil {
-		flattened["DebtMaximum"] = *l.DebtMaximum
+		flattened["DebtMaximum"] = strconv.FormatUint(*l.DebtMaximum, 10)
 	}
 
 	if l.CoverRateMinimum != nil {

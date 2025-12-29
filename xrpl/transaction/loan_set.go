@@ -1,6 +1,10 @@
 package transaction
 
-import "github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+import (
+	"strconv"
+
+	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+)
 
 // LoanSet transaction flags
 const (
@@ -54,43 +58,43 @@ func (c *CounterpartySignature) Flatten() map[string]interface{} {
 //	}
 //
 // ```
-type LoanSet struct {
-	BaseTx
-	// The ID of the loan broker to request a loan from.
-	LoanBrokerID types.Hash256
-	// The amount of principal requested for the loan.
-	PrincipalRequested string
-	// The counterparty's signature (loan broker owner).
-	CounterpartySignature *CounterpartySignature `json:",omitempty"`
-	// The counterparty account (loan broker owner).
-	Counterparty *types.Address `json:",omitempty"`
-	// Optional metadata for the loan.
-	Data *string `json:",omitempty"`
-	// One-time fee charged when the loan is originated.
-	LoanOriginationFee *string `json:",omitempty"`
-	// Ongoing fee charged for loan servicing.
-	LoanServiceFee *string `json:",omitempty"`
-	// Fee charged for late payments.
-	LatePaymentFee *string `json:",omitempty"`
-	// Fee charged when closing the loan early.
-	ClosePaymentFee *string `json:",omitempty"`
-	// Fee rate for overpayment (basis points).
-	OverpaymentFee *uint32 `json:",omitempty"`
-	// Interest rate (basis points).
-	InterestRate *uint32 `json:",omitempty"`
-	// Interest rate for late payments (basis points).
-	LateInterestRate *uint32 `json:",omitempty"`
-	// Interest rate for early close (basis points).
-	CloseInterestRate *uint32 `json:",omitempty"`
-	// Interest rate for overpayment (basis points).
-	OverpaymentInterestRate *uint32 `json:",omitempty"`
-	// Total number of payments for the loan.
-	PaymentTotal *uint32 `json:",omitempty"`
-	// Interval between payments in seconds.
-	PaymentInterval *uint32 `json:",omitempty"`
-	// Grace period in seconds after payment due date.
-	GracePeriod *uint32 `json:",omitempty"`
-}
+	type LoanSet struct {
+		BaseTx
+		// The ID of the loan broker to request a loan from.
+		LoanBrokerID types.Hash256
+		// The amount of principal requested for the loan.
+		PrincipalRequested uint64
+		// The counterparty's signature (loan broker owner).
+		CounterpartySignature *CounterpartySignature `json:",omitempty"`
+		// The counterparty account (loan broker owner).
+		Counterparty *types.Address `json:",omitempty"`
+		// Optional metadata for the loan.
+		Data *string `json:",omitempty"`
+		// One-time fee charged when the loan is originated.
+		LoanOriginationFee *uint64 `json:",omitempty"`
+		// Ongoing fee charged for loan servicing.
+		LoanServiceFee *uint64 `json:",omitempty"`
+		// Fee charged for late payments.
+		LatePaymentFee *uint64 `json:",omitempty"`
+		// Fee charged when closing the loan early.
+		ClosePaymentFee *uint64 `json:",omitempty"`
+		// Fee rate for overpayment (basis points).
+		OverpaymentFee *uint32 `json:",omitempty"`
+		// Interest rate (basis points).
+		InterestRate *uint32 `json:",omitempty"`
+		// Interest rate for late payments (basis points).
+		LateInterestRate *uint32 `json:",omitempty"`
+		// Interest rate for early close (basis points).
+		CloseInterestRate *uint32 `json:",omitempty"`
+		// Interest rate for overpayment (basis points).
+		OverpaymentInterestRate *uint32 `json:",omitempty"`
+		// Total number of payments for the loan.
+		PaymentTotal *uint32 `json:",omitempty"`
+		// Interval between payments in seconds.
+		PaymentInterval *uint32 `json:",omitempty"`
+		// Grace period in seconds after payment due date.
+		GracePeriod *uint32 `json:",omitempty"`
+	}
 
 // TxType returns the type of the transaction (LoanSet).
 func (*LoanSet) TxType() TxType {
@@ -103,7 +107,7 @@ func (l *LoanSet) Flatten() FlatTransaction {
 
 	flattened["TransactionType"] = LoanSetTx.String()
 	flattened["LoanBrokerID"] = l.LoanBrokerID.String()
-	flattened["PrincipalRequested"] = l.PrincipalRequested
+	flattened["PrincipalRequested"] = strconv.FormatUint(l.PrincipalRequested, 10)
 
 	if l.CounterpartySignature != nil {
 		flattened["CounterpartySignature"] = l.CounterpartySignature.Flatten()
@@ -115,16 +119,16 @@ func (l *LoanSet) Flatten() FlatTransaction {
 		flattened["Data"] = *l.Data
 	}
 	if l.LoanOriginationFee != nil {
-		flattened["LoanOriginationFee"] = *l.LoanOriginationFee
+		flattened["LoanOriginationFee"] = strconv.FormatUint(*l.LoanOriginationFee, 10)
 	}
 	if l.LoanServiceFee != nil {
-		flattened["LoanServiceFee"] = *l.LoanServiceFee
+		flattened["LoanServiceFee"] = strconv.FormatUint(*l.LoanServiceFee, 10)
 	}
 	if l.LatePaymentFee != nil {
-		flattened["LatePaymentFee"] = *l.LatePaymentFee
+		flattened["LatePaymentFee"] = strconv.FormatUint(*l.LatePaymentFee, 10)
 	}
 	if l.ClosePaymentFee != nil {
-		flattened["ClosePaymentFee"] = *l.ClosePaymentFee
+		flattened["ClosePaymentFee"] = strconv.FormatUint(*l.ClosePaymentFee, 10)
 	}
 	if l.OverpaymentFee != nil {
 		flattened["OverpaymentFee"] = *l.OverpaymentFee
@@ -170,7 +174,7 @@ func (l *LoanSet) Validate() (bool, error) {
 		return false, ErrInvalidLoanBrokerID
 	}
 
-	if l.PrincipalRequested == "" {
+	if l.PrincipalRequested == 0 {
 		return false, ErrInvalidPrincipalRequested
 	}
 

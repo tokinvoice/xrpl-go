@@ -1,6 +1,8 @@
 package transaction
 
 import (
+	"strconv"
+
 	ledger "github.com/Peersyst/xrpl-go/xrpl/ledger-entry-types"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
 )
@@ -44,7 +46,7 @@ type VaultCreate struct {
 	// Optional metadata for the vault.
 	Data *string `json:",omitempty"`
 	// Maximum amount of assets the vault can hold.
-	AssetsMaximum *string `json:",omitempty"`
+	AssetsMaximum *uint64 `json:",omitempty"`
 	// Optional metadata for the MPT share tokens.
 	MPTokenMetadata *string `json:",omitempty"`
 	// The withdrawal policy for this vault.
@@ -70,7 +72,7 @@ func (v *VaultCreate) Flatten() FlatTransaction {
 	}
 
 	if v.AssetsMaximum != nil {
-		flattened["AssetsMaximum"] = *v.AssetsMaximum
+		flattened["AssetsMaximum"] = strconv.FormatUint(*v.AssetsMaximum, 10)
 	}
 
 	if v.MPTokenMetadata != nil {
