@@ -66,11 +66,8 @@
     "SignerList": 83,
     "Ticket": 84,
     "Vault": 132,
-<<<<<<< HEAD
-=======
     "LoanBroker": 136,
     "Loan": 137,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
     "XChainOwnedClaimID": 113,
     "XChainOwnedCreateAccountClaimID": 116
   },
@@ -926,7 +923,6 @@
       }
     ],
     [
-<<<<<<< HEAD
       "StartDate",
       {
         "nth": 54,
@@ -937,8 +933,6 @@
       }
     ],
     [
-=======
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
       "PaymentInterval",
       {
         "nth": 55,
@@ -959,7 +953,6 @@
       }
     ],
     [
-<<<<<<< HEAD
       "PreviousPaymentDate",
       {
         "nth": 57,
@@ -990,8 +983,6 @@
       }
     ],
     [
-=======
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
       "PaymentTotal",
       {
         "nth": 60,
@@ -1002,15 +993,9 @@
       }
     ],
     [
-<<<<<<< HEAD
       "LoanSequence",
       {
         "nth": 61,
-=======
-      "InterestRate",
-      {
-        "nth": 65,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "isVLEncoded": false,
         "isSerialized": true,
         "isSigningField": true,
@@ -1038,7 +1023,6 @@
       }
     ],
     [
-<<<<<<< HEAD
       "OverpaymentFee",
       {
         "nth": 64,
@@ -1089,8 +1073,6 @@
       }
     ],
     [
-=======
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
       "IndexNext",
       {
         "nth": 1,
@@ -1743,17 +1725,10 @@
     [
       "VaultID",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 35,
-=======
-        "nth": 35,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Hash256"
       }
     ],
@@ -1770,34 +1745,20 @@
     [
       "LoanBrokerID",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 37,
-=======
-        "nth": 37,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Hash256"
       }
     ],
     [
       "LoanID",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 38,
-=======
-        "nth": 38,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Hash256"
       }
     ],
@@ -2744,41 +2705,26 @@
     [
       "AssetsAvailable",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 2,
-=======
-        "nth": 2,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "AssetsMaximum",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 3,
-=======
-        "nth": 3,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "AssetsTotal",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
@@ -2793,216 +2739,126 @@
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 5,
-=======
-        "nth": 4,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "DebtTotal",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 6,
-=======
-        "nth": 6,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "DebtMaximum",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 7,
-=======
-        "nth": 7,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "CoverAvailable",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 8,
-=======
-        "nth": 8,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "LoanOriginationFee",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 9,
-=======
-        "nth": 9,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "LoanServiceFee",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 10,
-=======
-        "nth": 10,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "LatePaymentFee",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 11,
-=======
-        "nth": 11,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "ClosePaymentFee",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 12,
-=======
-        "nth": 12,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "PrincipalOutstanding",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 13,
-=======
-        "nth": 13,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "PrincipalRequested",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 14,
-=======
-        "nth": 14,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "TotalValueOutstanding",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 15,
-=======
-        "nth": 15,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "PeriodicPayment",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 16,
-=======
-        "nth": 16,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
     [
       "ManagementFeeOutstanding",
       {
-<<<<<<< HEAD
         "isSerialized": true,
         "isSigningField": true,
         "isVLEncoded": false,
         "nth": 17,
-=======
-        "nth": 17,
-        "isVLEncoded": false,
-        "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
         "type": "Number"
       }
     ],
@@ -3337,14 +3193,6 @@
       }
     ],
     [
-<<<<<<< HEAD
-      "CounterpartySignature",
-      {
-        "isSerialized": true,
-        "isSigningField": false,
-        "isVLEncoded": false,
-        "nth": 37,
-=======
       "Book",
       {
         "nth": 36,
@@ -3357,11 +3205,10 @@
     [
       "CounterpartySignature",
       {
-        "nth": 37,
-        "isVLEncoded": false,
         "isSerialized": true,
-        "isSigningField": true,
->>>>>>> 6ecdf43 (feat: Add XLS-65/66 definitions to binary-codec)
+        "isSigningField": false,
+        "isVLEncoded": false,
+        "nth": 37,
         "type": "STObject"
       }
     ],
@@ -3634,7 +3481,6 @@
     "telREQUIRES_NETWORK_ID": -385,
     "telNETWORK_ID_MAKES_TX_NON_CANONICAL": -384,
     "telENV_RPC_FAILED": -383,
-
     "temMALFORMED": -299,
     "temBAD_AMOUNT": -298,
     "temBAD_CURRENCY": -297,
@@ -3684,7 +3530,6 @@
     "temEMPTY_DID": -254,
     "temARRAY_EMPTY": -253,
     "temARRAY_TOO_LARGE": -252,
-
     "tefFAILURE": -199,
     "tefALREADY": -198,
     "tefBAD_ADD_AUTH": -197,
@@ -3706,7 +3551,6 @@
     "tefTOO_BIG": -181,
     "tefNO_TICKET": -180,
     "tefNFTOKEN_IS_NOT_TRANSFERABLE": -179,
-
     "terRETRY": -99,
     "terFUNDS_SPENT": -98,
     "terINSUF_FEE_B": -97,
@@ -3720,9 +3564,7 @@
     "terQUEUED": -89,
     "terPRE_TICKET": -88,
     "terNO_AMM": -87,
-
     "tesSUCCESS": 0,
-
     "tecBAD_CREDENTIALS": 193,
     "tecCLAIM": 100,
     "tecPATH_PARTIAL": 101,
@@ -3828,15 +3670,6 @@
     "EscrowCreate": 1,
     "EscrowFinish": 2,
     "Invalid": -1,
-    "LoanBrokerCoverClawback": 78,
-    "LoanBrokerCoverDeposit": 76,
-    "LoanBrokerCoverWithdraw": 77,
-    "LoanBrokerDelete": 75,
-    "LoanBrokerSet": 74,
-    "LoanDelete": 81,
-    "LoanManage": 82,
-    "LoanPay": 84,
-    "LoanSet": 80,
     "NFTokenAcceptOffer": 29,
     "NFTokenBurn": 26,
     "NFTokenCancelOffer": 28,
@@ -3867,12 +3700,6 @@
     "TicketCreate": 10,
     "TrustSet": 20,
     "UNLModify": 102,
-    "VaultClawback": 70,
-    "VaultCreate": 65,
-    "VaultDelete": 67,
-    "VaultDeposit": 68,
-    "VaultSet": 66,
-    "VaultWithdraw": 69,
     "XChainAccountCreateCommit": 44,
     "XChainAddAccountCreateAttestation": 46,
     "XChainAddClaimAttestation": 45,
