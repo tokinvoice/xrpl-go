@@ -163,6 +163,40 @@ func TestNumber_RoundTrip(t *testing.T) {
 	}
 }
 
+func TestNumber_FromJSON_NumericTypes(t *testing.T) {
+	n := &Number{}
+
+	tests := []struct {
+		name    string
+		input   any
+		wantHex string
+	}{
+		{
+			name:    "uint64",
+			input:   uint64(1000000000000000),
+			wantHex: "00038d7ea4c6800000000000",
+		},
+		{
+			name:    "int64",
+			input:   int64(1000000000000000),
+			wantHex: "00038d7ea4c6800000000000",
+		},
+		{
+			name:    "int",
+			input:   1000000000000000,
+			wantHex: "00038d7ea4c6800000000000",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := n.FromJSON(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.wantHex, hex.EncodeToString(result))
+		})
+	}
+}
+
 func TestNumber_InvalidInputTypes(t *testing.T) {
 	n := &Number{}
 
@@ -171,7 +205,6 @@ func TestNumber_InvalidInputTypes(t *testing.T) {
 		input any
 	}{
 		{"nil", nil},
-		{"integer", 123},
 		{"float", 123.456},
 		{"bool", true},
 		{"slice", []byte{1, 2, 3}},
