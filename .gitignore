@@ -52,3 +52,5 @@ debug
 
 # Coverage report
 coverage.html
+
+/xls65-66-tests
