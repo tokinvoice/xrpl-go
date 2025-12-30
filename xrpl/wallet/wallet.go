@@ -178,6 +178,18 @@ func (w *Wallet) GetAddress() types.Address {
 	return types.Address(w.ClassicAddress)
 }
 
+// GetPublicKey returns the public key of the wallet.
+func (w *Wallet) GetPublicKey() string {
+	return w.PublicKey
+}
+
+// ComputeSignature computes a signature for the given encoded transaction data.
+// The encodedTx should be the hex-encoded result of EncodeForSigning.
+// Returns the hex-encoded signature.
+func (w *Wallet) ComputeSignature(encodedTx string) (string, error) {
+	return w.computeSignature(encodedTx)
+}
+
 // Multisign signs a multisigned transaction offline, returning the signed transaction blob and its transaction hash.
 func (w *Wallet) Multisign(tx map[string]interface{}) (string, string, error) {
 	encodedTx, err := binarycodec.EncodeForMultisigning(tx, w.ClassicAddress.String())
