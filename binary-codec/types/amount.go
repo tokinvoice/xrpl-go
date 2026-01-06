@@ -171,6 +171,10 @@ func (a *Amount) FromJSON(value any) ([]byte, error) {
 }
 
 // ToJSON deserializes a binary-encoded Amount object from a BinaryParser into a JSON representation.
+// The order of checks is important:
+// 1. If bit 0x80 is set → IOU (48 bytes)
+// 2. If bit 0x20 is set → MPT (33 bytes)
+// 3. Otherwise → XRP (8 bytes)
 func (a *Amount) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 	b, err := p.Peek()
 	if err != nil {
@@ -181,7 +185,16 @@ func (a *Amount) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 		sign = "-"
 	}
 
-	// if MPTAmountFlag (bit 0x20) is set, amount is an MPT
+	// Check IOU first (bit 0x80 set) - IOU amounts are 48 bytes
+	if !isNative(b) {
+		token, err := p.ReadBytes(48)
+		if err != nil {
+			return nil, err
+		}
+		return deserializeToken(token)
+	}
+
+	// Check MPT next (bit 0x20 set) - MPT amounts are 33 bytes
 	if b&MPTAmountFlag != 0 {
 		token, err := p.ReadBytes(MPTAmountByteLength)
 		if err != nil {
@@ -190,21 +203,14 @@ func (a *Amount) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 		return deserializeMPTAmount(token)
 	}
 
-	if isNative(b) {
-		xrp, err := p.ReadBytes(8)
-		if err != nil {
-			return nil, err
-		}
-		xrpVal := binary.BigEndian.Uint64(xrp)
-		xrpVal &= 0x3FFFFFFFFFFFFFFF
-		return sign + strconv.FormatUint(xrpVal, 10), nil
-	}
-
-	token, err := p.ReadBytes(48)
+	// Otherwise it's native XRP (8 bytes)
+	xrp, err := p.ReadBytes(8)
 	if err != nil {
 		return nil, err
 	}
-	return deserializeToken(token)
+	xrpVal := binary.BigEndian.Uint64(xrp)
+	xrpVal &= 0x3FFFFFFFFFFFFFFF
+	return sign + strconv.FormatUint(xrpVal, 10), nil
 }
 
 func deserializeToken(data []byte) (map[string]any, error) {

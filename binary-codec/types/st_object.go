@@ -2,6 +2,7 @@
 package types
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/Peersyst/xrpl-go/binary-codec/definitions"
@@ -64,7 +65,7 @@ func (t *STObject) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 
 		fi, err := p.ReadField()
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("ReadField error: %w", err)
 		}
 
 		if fi.FieldName == "ObjectEndMarker" || fi.FieldName == "ArrayEndMarker" {
@@ -72,22 +73,25 @@ func (t *STObject) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 		}
 
 		st := GetSerializedType(fi.Type)
+		if st == nil {
+			return nil, fmt.Errorf("unknown type %q for field %q", fi.Type, fi.FieldName)
+		}
 
 		var res any
 		if fi.IsVLEncoded {
 			vlen, err := p.ReadVariableLength()
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("ReadVariableLength error for field %q: %w", fi.FieldName, err)
 			}
 			res, err = st.ToJSON(p, vlen)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("ToJSON error for VL field %q (type=%s, vlen=%d): %w", fi.FieldName, fi.Type, vlen, err)
 			}
 
 		} else {
 			res, err = st.ToJSON(p)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("ToJSON error for field %q (type=%s): %w", fi.FieldName, fi.Type, err)
 			}
 		}
 		res, err = enumToStr(fi.FieldName, res)
