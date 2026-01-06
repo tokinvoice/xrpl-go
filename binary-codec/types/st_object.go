@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 
+	addresscodec "github.com/Peersyst/xrpl-go/address-codec"
 	"github.com/Peersyst/xrpl-go/binary-codec/definitions"
 	"github.com/Peersyst/xrpl-go/binary-codec/types/interfaces"
 )
@@ -109,12 +110,62 @@ func (t *STObject) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 // Each key-value pair in the JSON object is converted into a field instance, where the key
 // represents the field name and the value is the field's value.
 // Special handling for PermissionValue fields: converts string permission names to numeric values.
+// Also handles X-addresses by extracting embedded tags.
 //
 //lint:ignore U1000 // ignore this for now
 func createFieldInstanceMapFromJson(json map[string]any) (map[definitions.FieldInstance]any, error) {
-	m := make(map[definitions.FieldInstance]any, len(json))
-
+	// First pass: handle X-addresses and extract tags
+	processedJSON := make(map[string]any, len(json))
 	for k, v := range json {
+		processedJSON[k] = v
+	}
+
+	// Process X-addresses
+	for k, v := range json {
+		strVal, ok := v.(string)
+		if !ok {
+			continue
+		}
+
+		if !addresscodec.IsValidXAddress(strVal) {
+			continue
+		}
+
+		// Decode X-address
+		classicAddr, tag, _, err := addresscodec.XAddressToClassicAddress(strVal)
+		if err != nil {
+			return nil, fmt.Errorf("failed to decode X-address for field %s: %w", k, err)
+		}
+
+		// Replace X-address with classic address
+		processedJSON[k] = classicAddr
+
+		// If there's an embedded tag, add it as SourceTag or DestinationTag
+		if tag != 0 {
+			var tagFieldName string
+			switch k {
+			case "Destination":
+				tagFieldName = "DestinationTag"
+			case "Account":
+				tagFieldName = "SourceTag"
+			default:
+				return nil, fmt.Errorf("%s cannot have an associated tag", k)
+			}
+
+			// Check for duplicate tags
+			if existingTag, exists := processedJSON[tagFieldName]; exists {
+				if existingTag != tag {
+					return nil, fmt.Errorf("duplicate %s: X-address tag (%d) does not match existing tag (%v)", tagFieldName, tag, existingTag)
+				}
+			}
+			processedJSON[tagFieldName] = tag
+		}
+	}
+
+	// Second pass: create field instance map
+	m := make(map[definitions.FieldInstance]any, len(processedJSON))
+
+	for k, v := range processedJSON {
 		fi, err := definitions.Get().GetFieldInstanceByFieldName(k)
 
 		if err != nil {
