@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+#### xrpl
+
+- `AuthorizeChannel` to authorize a payment channel.
+
 ### Fixed
 
 #### xrpl
