@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `AuthorizeChannel` to authorize a payment channel.
 
+### Fixed
+
+#### xrpl
+
+- `rpc` client timeout fetched from config.
+
 ### Refactored
 
 #### xrpl
