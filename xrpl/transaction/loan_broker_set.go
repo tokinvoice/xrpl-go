@@ -1,0 +1,162 @@
+package transaction
+
+import (
+	"errors"
+	"strconv"
+
+	"github.com/Peersyst/xrpl-go/pkg/typecheck"
+)
+
+const (
+	// LoanBrokerSetMaxDataLength is the maximum length in characters for the Data field.
+	LoanBrokerSetMaxDataLength = 512
+	// LoanBrokerSetMaxManagementFeeRate is the maximum value for ManagementFeeRate (10000 = 10%).
+	LoanBrokerSetMaxManagementFeeRate = 10000
+	// LoanBrokerSetMaxCoverRateMinimum is the maximum value for CoverRateMinimum (100000 = 100%).
+	LoanBrokerSetMaxCoverRateMinimum = 100000
+	// LoanBrokerSetMaxCoverRateLiquidation is the maximum value for CoverRateLiquidation (100000 = 100%).
+	LoanBrokerSetMaxCoverRateLiquidation = 100000
+)
+
+// LoanBrokerSet creates a new LoanBroker object or updates an existing one.
+//
+// ```json
+//
+//	{
+//	  "TransactionType": "LoanBrokerSet",
+//	  "Account": "rNZ9m6AP9K7z3EVg6GhPMx36V4QmZKeWds",
+//	  "VaultID": "B91CD2033E73E0DD17AF043FBD458CE7D996850A83DCED23FB122A3BFAA7F430"
+//	}
+//
+// ```
+type LoanBrokerSet struct {
+	BaseTx
+	// The Vault ID that the Lending Protocol will use to access liquidity.
+	VaultID string
+	// The Loan Broker ID that the transaction is modifying.
+	LoanBrokerID *string `json:",omitempty"`
+	// Arbitrary metadata in hex format. The field is limited to 512 characters.
+	Data *string `json:",omitempty"`
+	// The 1/10th basis point fee charged by the Lending Protocol Owner. Valid values are between 0 and 10000 inclusive (1% - 10%).
+	ManagementFeeRate *uint32 `json:",omitempty"`
+	// The maximum amount the protocol can owe the Vault.
+	// The default value of 0 means there is no limit to the debt. Must not be negative.
+	DebtMaximum *string `json:",omitempty"`
+	// The 1/10th basis point DebtTotal that the first loss capital must cover. Valid values are between 0 and 100000 inclusive.
+	CoverRateMinimum *uint32 `json:",omitempty"`
+	// The 1/10th basis point of minimum required first loss capital liquidated to cover a Loan default.
+	// Valid values are between 0 and 100000 inclusive.
+	CoverRateLiquidation *uint32 `json:",omitempty"`
+}
+
+// TxType returns the TxType for LoanBrokerSet transactions.
+func (tx *LoanBrokerSet) TxType() TxType {
+	return LoanBrokerSetTx
+}
+
+// Flatten returns a map representation of the LoanBrokerSet transaction for JSON-RPC submission.
+func (tx *LoanBrokerSet) Flatten() map[string]interface{} {
+	flattened := tx.BaseTx.Flatten()
+
+	flattened["TransactionType"] = tx.TxType().String()
+
+	if tx.Account != "" {
+		flattened["Account"] = tx.Account.String()
+	}
+
+	flattened["VaultID"] = tx.VaultID
+
+	if tx.LoanBrokerID != nil && *tx.LoanBrokerID != "" {
+		flattened["LoanBrokerID"] = *tx.LoanBrokerID
+	}
+
+	if tx.Data != nil && *tx.Data != "" {
+		flattened["Data"] = *tx.Data
+	}
+
+	if tx.ManagementFeeRate != nil && *tx.ManagementFeeRate != 0 {
+		flattened["ManagementFeeRate"] = *tx.ManagementFeeRate
+	}
+
+	if tx.DebtMaximum != nil && *tx.DebtMaximum != "" {
+		flattened["DebtMaximum"] = *tx.DebtMaximum
+	}
+
+	if tx.CoverRateMinimum != nil && *tx.CoverRateMinimum != 0 {
+		flattened["CoverRateMinimum"] = *tx.CoverRateMinimum
+	}
+
+	if tx.CoverRateLiquidation != nil && *tx.CoverRateLiquidation != 0 {
+		flattened["CoverRateLiquidation"] = *tx.CoverRateLiquidation
+	}
+
+	return flattened
+}
+
+// Validate checks LoanBrokerSet transaction fields and returns false with an error if invalid.
+func (tx *LoanBrokerSet) Validate() (bool, error) {
+	if ok, err := tx.BaseTx.Validate(); !ok {
+		return false, err
+	}
+
+	if tx.VaultID == "" {
+		return false, errors.New("LoanBrokerSet: VaultID is required")
+	}
+
+	if !IsLedgerEntryID(tx.VaultID) {
+		return false, errors.New("LoanBrokerSet: VaultID must be 64 characters hexadecimal string")
+	}
+
+	if tx.LoanBrokerID != nil && *tx.LoanBrokerID != "" {
+		if !IsLedgerEntryID(*tx.LoanBrokerID) {
+			return false, errors.New("LoanBrokerSet: LoanBrokerID must be 64 characters hexadecimal string")
+		}
+	}
+
+	if tx.Data != nil && *tx.Data != "" {
+		if !ValidateHexMetadata(*tx.Data, LoanBrokerSetMaxDataLength) {
+			return false, errors.New("LoanBrokerSet: Data must be a valid non-empty hex string up to 512 characters")
+		}
+	}
+
+	if tx.ManagementFeeRate != nil && *tx.ManagementFeeRate > LoanBrokerSetMaxManagementFeeRate {
+		return false, errors.New("LoanBrokerSet: ManagementFeeRate must be between 0 and 10000 inclusive")
+	}
+
+	if tx.DebtMaximum != nil && *tx.DebtMaximum != "" {
+		if !typecheck.IsXRPLNumber(*tx.DebtMaximum) {
+			return false, errors.New("LoanBrokerSet: DebtMaximum must be a valid XRPL number")
+		}
+		// Check that DebtMaximum is non-negative
+		val, err := strconv.ParseFloat(*tx.DebtMaximum, 64)
+		if err != nil || val < 0 {
+			return false, errors.New("LoanBrokerSet: DebtMaximum must be a non-negative value")
+		}
+	}
+
+	if tx.CoverRateMinimum != nil && *tx.CoverRateMinimum > LoanBrokerSetMaxCoverRateMinimum {
+		return false, errors.New("LoanBrokerSet: CoverRateMinimum must be between 0 and 100000 inclusive")
+	}
+
+	if tx.CoverRateLiquidation != nil && *tx.CoverRateLiquidation > LoanBrokerSetMaxCoverRateLiquidation {
+		return false, errors.New("LoanBrokerSet: CoverRateLiquidation must be between 0 and 100000 inclusive")
+	}
+
+	// Validate that either both CoverRateMinimum and CoverRateLiquidation are zero,
+	// or both are non-zero.
+	coverRateMinimumValue := uint32(0)
+	if tx.CoverRateMinimum != nil {
+		coverRateMinimumValue = *tx.CoverRateMinimum
+	}
+	coverRateLiquidationValue := uint32(0)
+	if tx.CoverRateLiquidation != nil {
+		coverRateLiquidationValue = *tx.CoverRateLiquidation
+	}
+
+	if (coverRateMinimumValue == 0 && coverRateLiquidationValue != 0) ||
+		(coverRateMinimumValue != 0 && coverRateLiquidationValue == 0) {
+		return false, errors.New("LoanBrokerSet: CoverRateMinimum and CoverRateLiquidation must both be zero or both be non-zero")
+	}
+
+	return true, nil
+}

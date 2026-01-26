@@ -4,6 +4,7 @@ package typecheck
 import (
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 // IsUint8 checks if the given interface is a uint8.
@@ -70,5 +71,21 @@ func IsFloat64(s string) bool {
 // IsStringNumericUint checks if the given string is a valid unsigned integer with the specified base and bit size.
 func IsStringNumericUint(s string, base, bitSize int) bool {
 	_, err := strconv.ParseUint(s, base, bitSize)
+	return err == nil
+}
+
+// IsXRPLNumber checks if the value is a valid XRPL number string.
+// XRPL numbers are strings that represent numbers, including scientific notation.
+func IsXRPLNumber(value interface{}) bool {
+	str, ok := value.(string)
+	if !ok {
+		return false
+	}
+	str = strings.TrimSpace(str)
+	if str == "" {
+		return false
+	}
+	// Check if it's a valid number (allows decimal, scientific notation, etc.)
+	_, err := strconv.ParseFloat(str, 64)
 	return err == nil
 }

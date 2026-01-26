@@ -1,0 +1,281 @@
+package transaction
+
+import (
+	"errors"
+
+	addresscodec "github.com/Peersyst/xrpl-go/address-codec"
+	"github.com/Peersyst/xrpl-go/pkg/typecheck"
+	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
+)
+
+const (
+	// LoanSetMaxDataLength is the maximum length in characters for the Data field.
+	LoanSetMaxDataLength = 512
+	// LoanSetMaxOverPaymentFeeRate is the maximum value for OverpaymentFee (100000 = 100%).
+	LoanSetMaxOverPaymentFeeRate = 100000
+	// LoanSetMaxInterestRate is the maximum value for InterestRate (100000 = 100%).
+	LoanSetMaxInterestRate = 100000
+	// LoanSetMaxLateInterestRate is the maximum value for LateInterestRate (100000 = 100%).
+	LoanSetMaxLateInterestRate = 100000
+	// LoanSetMaxCloseInterestRate is the maximum value for CloseInterestRate (100000 = 100%).
+	LoanSetMaxCloseInterestRate = 100000
+	// LoanSetMaxOverPaymentInterestRate is the maximum value for OverpaymentInterestRate (100000 = 100%).
+	LoanSetMaxOverPaymentInterestRate = 100000
+	// LoanSetMinPaymentInterval is the minimum value for PaymentInterval in seconds.
+	LoanSetMinPaymentInterval = 60
+)
+
+// LoanSetFlags represents flags for LoanSet transactions.
+const (
+	// tfLoanOverpayment indicates that the loan supports over payments.
+	tfLoanOverpayment uint32 = 0x00010000
+)
+
+// CounterpartySignature represents the signature of the counterparty over the transaction.
+type CounterpartySignature struct {
+	// The Public Key to be used to verify the validity of the signature.
+	SigningPubKey string `json:",omitempty"`
+	// The signature of over all signing fields.
+	TxnSignature string `json:",omitempty"`
+	// An array of transaction signatures from the Counterparty signers to indicate their approval of this transaction.
+	Signers []types.Signer `json:",omitempty"`
+}
+
+// Flatten returns a map representation of the CounterpartySignature for JSON-RPC submission.
+func (cs *CounterpartySignature) Flatten() map[string]interface{} {
+	flattened := make(map[string]interface{})
+	if cs.SigningPubKey != "" {
+		flattened["SigningPubKey"] = cs.SigningPubKey
+	}
+	if cs.TxnSignature != "" {
+		flattened["TxnSignature"] = cs.TxnSignature
+	}
+	if len(cs.Signers) > 0 {
+		flattenedSigners := make([]map[string]interface{}, len(cs.Signers))
+		for i, signer := range cs.Signers {
+			flattenedSigners[i] = signer.Flatten()
+		}
+		flattened["Signers"] = flattenedSigners
+	}
+	return flattened
+}
+
+// LoanSet creates a new Loan object.
+//
+// ```json
+//
+//	{
+//	  "TransactionType": "LoanSet",
+//	  "Account": "rHLLL3Z7uBLK49yZcMaj8FAP7DU12Nw5A5",
+//	  "LoanBrokerID": "B91CD2033E73E0DD17AF043FBD458CE7D996850A83DCED23FB122A3BFAA7F430",
+//	  "PrincipalRequested": "100000"
+//	}
+//
+// ```
+type LoanSet struct {
+	BaseTx
+	// The Loan Broker ID associated with the loan.
+	LoanBrokerID string
+	// The principal amount requested by the Borrower.
+	PrincipalRequested string
+	// The signature of the counterparty over the transaction.
+	CounterpartySignature *CounterpartySignature `json:",omitempty"`
+	// The address of the counterparty of the Loan.
+	Counterparty *types.Address `json:",omitempty"`
+	// Arbitrary metadata in hex format. The field is limited to 512 characters.
+	Data *string `json:",omitempty"`
+	// A nominal funds amount paid to the LoanBroker.Owner when the Loan is created.
+	LoanOriginationFee *string `json:",omitempty"`
+	// A nominal amount paid to the LoanBroker.Owner with every Loan payment.
+	LoanServiceFee *string `json:",omitempty"`
+	// A nominal funds amount paid to the LoanBroker.Owner when a payment is late.
+	LatePaymentFee *string `json:",omitempty"`
+	// A nominal funds amount paid to the LoanBroker.Owner when an early full repayment is made.
+	ClosePaymentFee *string `json:",omitempty"`
+	// A fee charged on overpayments in 1/10th basis points. Valid values are between 0 and 100000 inclusive. (0 - 100%)
+	OverpaymentFee *uint32 `json:",omitempty"`
+	// Annualized interest rate of the Loan in 1/10th basis points. Valid values are between 0 and 100000 inclusive. (0 - 100%)
+	InterestRate *uint32 `json:",omitempty"`
+	// A premium added to the interest rate for late payments in 1/10th basis points.
+	// Valid values are between 0 and 100000 inclusive. (0 - 100%)
+	LateInterestRate *uint32 `json:",omitempty"`
+	// A Fee Rate charged for repaying the Loan early in 1/10th basis points.
+	// Valid values are between 0 and 100000 inclusive. (0 - 100%)
+	CloseInterestRate *uint32 `json:",omitempty"`
+	// An interest rate charged on over payments in 1/10th basis points. Valid values are between 0 and 100000 inclusive. (0 - 100%)
+	OverpaymentInterestRate *uint32 `json:",omitempty"`
+	// The total number of payments to be made against the Loan.
+	PaymentTotal *uint32 `json:",omitempty"`
+	// Number of seconds between Loan payments.
+	PaymentInterval *uint32 `json:",omitempty"`
+	// The number of seconds after the Loan's Payment Due Date can be Defaulted.
+	GracePeriod *uint32 `json:",omitempty"`
+}
+
+// TxType returns the TxType for LoanSet transactions.
+func (tx *LoanSet) TxType() TxType {
+	return LoanSetTx
+}
+
+// SetLoanOverpaymentFlag sets the tfLoanOverpayment flag, indicating that the loan supports over payments.
+func (tx *LoanSet) SetLoanOverpaymentFlag() {
+	tx.Flags |= tfLoanOverpayment
+}
+
+// Flatten returns a map representation of the LoanSet transaction for JSON-RPC submission.
+func (tx *LoanSet) Flatten() map[string]interface{} {
+	flattened := tx.BaseTx.Flatten()
+
+	flattened["TransactionType"] = tx.TxType().String()
+
+	if tx.Account != "" {
+		flattened["Account"] = tx.Account.String()
+	}
+
+	flattened["LoanBrokerID"] = tx.LoanBrokerID
+	flattened["PrincipalRequested"] = tx.PrincipalRequested
+
+	if tx.CounterpartySignature != nil {
+		flattened["CounterpartySignature"] = tx.CounterpartySignature.Flatten()
+	}
+
+	if tx.Counterparty != nil {
+		flattened["Counterparty"] = tx.Counterparty.String()
+	}
+
+	if tx.Data != nil && *tx.Data != "" {
+		flattened["Data"] = *tx.Data
+	}
+
+	if tx.LoanOriginationFee != nil && *tx.LoanOriginationFee != "" {
+		flattened["LoanOriginationFee"] = *tx.LoanOriginationFee
+	}
+
+	if tx.LoanServiceFee != nil && *tx.LoanServiceFee != "" {
+		flattened["LoanServiceFee"] = *tx.LoanServiceFee
+	}
+
+	if tx.LatePaymentFee != nil && *tx.LatePaymentFee != "" {
+		flattened["LatePaymentFee"] = *tx.LatePaymentFee
+	}
+
+	if tx.ClosePaymentFee != nil && *tx.ClosePaymentFee != "" {
+		flattened["ClosePaymentFee"] = *tx.ClosePaymentFee
+	}
+
+	if tx.OverpaymentFee != nil && *tx.OverpaymentFee != 0 {
+		flattened["OverpaymentFee"] = *tx.OverpaymentFee
+	}
+
+	if tx.InterestRate != nil && *tx.InterestRate != 0 {
+		flattened["InterestRate"] = *tx.InterestRate
+	}
+
+	if tx.LateInterestRate != nil && *tx.LateInterestRate != 0 {
+		flattened["LateInterestRate"] = *tx.LateInterestRate
+	}
+
+	if tx.CloseInterestRate != nil && *tx.CloseInterestRate != 0 {
+		flattened["CloseInterestRate"] = *tx.CloseInterestRate
+	}
+
+	if tx.OverpaymentInterestRate != nil && *tx.OverpaymentInterestRate != 0 {
+		flattened["OverpaymentInterestRate"] = *tx.OverpaymentInterestRate
+	}
+
+	if tx.PaymentTotal != nil && *tx.PaymentTotal != 0 {
+		flattened["PaymentTotal"] = *tx.PaymentTotal
+	}
+
+	if tx.PaymentInterval != nil && *tx.PaymentInterval != 0 {
+		flattened["PaymentInterval"] = *tx.PaymentInterval
+	}
+
+	if tx.GracePeriod != nil && *tx.GracePeriod != 0 {
+		flattened["GracePeriod"] = *tx.GracePeriod
+	}
+
+	return flattened
+}
+
+// Validate checks LoanSet transaction fields and returns false with an error if invalid.
+func (tx *LoanSet) Validate() (bool, error) {
+	if ok, err := tx.BaseTx.Validate(); !ok {
+		return false, err
+	}
+
+	if tx.LoanBrokerID == "" {
+		return false, errors.New("LoanSet: LoanBrokerID is required")
+	}
+
+	if !IsLedgerEntryID(tx.LoanBrokerID) {
+		return false, errors.New("LoanSet: LoanBrokerID must be 64 characters hexadecimal string")
+	}
+
+	if tx.PrincipalRequested == "" {
+		return false, errors.New("LoanSet: PrincipalRequested is required")
+	}
+
+	if !typecheck.IsXRPLNumber(tx.PrincipalRequested) {
+		return false, errors.New("LoanSet: PrincipalRequested must be a valid XRPL number")
+	}
+
+	if tx.Data != nil && *tx.Data != "" {
+		if !ValidateHexMetadata(*tx.Data, LoanSetMaxDataLength) {
+			return false, errors.New("LoanSet: Data must be a valid non-empty hex string up to 512 characters")
+		}
+	}
+
+	if tx.Counterparty != nil {
+		if !addresscodec.IsValidAddress(tx.Counterparty.String()) {
+			return false, ErrInvalidAccount
+		}
+	}
+
+	if tx.OverpaymentFee != nil && *tx.OverpaymentFee > LoanSetMaxOverPaymentFeeRate {
+		return false, errors.New("LoanSet: OverpaymentFee must be between 0 and 100000 inclusive")
+	}
+
+	if tx.InterestRate != nil && *tx.InterestRate > LoanSetMaxInterestRate {
+		return false, errors.New("LoanSet: InterestRate must be between 0 and 100000 inclusive")
+	}
+
+	if tx.LateInterestRate != nil && *tx.LateInterestRate > LoanSetMaxLateInterestRate {
+		return false, errors.New("LoanSet: LateInterestRate must be between 0 and 100000 inclusive")
+	}
+
+	if tx.CloseInterestRate != nil && *tx.CloseInterestRate > LoanSetMaxCloseInterestRate {
+		return false, errors.New("LoanSet: CloseInterestRate must be between 0 and 100000 inclusive")
+	}
+
+	if tx.OverpaymentInterestRate != nil && *tx.OverpaymentInterestRate > LoanSetMaxOverPaymentInterestRate {
+		return false, errors.New("LoanSet: OverpaymentInterestRate must be between 0 and 100000 inclusive")
+	}
+
+	if tx.PaymentInterval != nil && *tx.PaymentInterval != 0 && *tx.PaymentInterval < LoanSetMinPaymentInterval {
+		return false, errors.New("LoanSet: PaymentInterval must be greater than or equal to 60")
+	}
+
+	if tx.PaymentInterval != nil && tx.GracePeriod != nil && *tx.PaymentInterval != 0 && *tx.GracePeriod != 0 && *tx.GracePeriod > *tx.PaymentInterval {
+		return false, errors.New("LoanSet: GracePeriod must not be greater than PaymentInterval")
+	}
+
+	// Validate optional XRPLNumber fields
+	if tx.LoanOriginationFee != nil && *tx.LoanOriginationFee != "" && !typecheck.IsXRPLNumber(*tx.LoanOriginationFee) {
+		return false, errors.New("LoanSet: LoanOriginationFee must be a valid XRPL number")
+	}
+
+	if tx.LoanServiceFee != nil && *tx.LoanServiceFee != "" && !typecheck.IsXRPLNumber(*tx.LoanServiceFee) {
+		return false, errors.New("LoanSet: LoanServiceFee must be a valid XRPL number")
+	}
+
+	if tx.LatePaymentFee != nil && *tx.LatePaymentFee != "" && !typecheck.IsXRPLNumber(*tx.LatePaymentFee) {
+		return false, errors.New("LoanSet: LatePaymentFee must be a valid XRPL number")
+	}
+
+	if tx.ClosePaymentFee != nil && *tx.ClosePaymentFee != "" && !typecheck.IsXRPLNumber(*tx.ClosePaymentFee) {
+		return false, errors.New("LoanSet: ClosePaymentFee must be a valid XRPL number")
+	}
+
+	return true, nil
+}
