@@ -374,8 +374,6 @@ func verifyXrpValue(value string) error {
 }
 
 // verifyIOUValue validates the format of an issued currency amount value.
-// This matches the JS implementation: const e = (decimal.e || 0) - 15
-// where decimal.e is BigNumber's exponent for normalized scientific notation.
 func verifyIOUValue(value string) error {
 	bigDecimal, err := bigdecimal.NewBigDecimal(value)
 	if err != nil {
@@ -390,9 +388,6 @@ func verifyIOUValue(value string) error {
 		return &OutOfRangeError{Type: "Precision"}
 	}
 
-	// JS uses: const e = (decimal.e || 0) - 15
-	// BigNumber.e = Scale + Precision - 1 (for normalized representation)
-	// So: adjusted_exp = Scale + Precision - 1 - 15 = Scale + Precision - 16
 	adjustedExp := bigDecimal.Scale + bigDecimal.Precision - 16
 
 	if adjustedExp < MinIOUExponent {

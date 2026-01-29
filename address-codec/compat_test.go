@@ -66,7 +66,6 @@ func loadFixtures(t *testing.T) *Fixtures {
 }
 
 // TestCompat_EncodeDecodeAccountID tests encoding and decoding of AccountIDs
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_EncodeDecodeAccountID(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -89,7 +88,6 @@ func TestCompat_EncodeDecodeAccountID(t *testing.T) {
 }
 
 // TestCompat_EncodeDecodeNodePublic tests encoding and decoding of NodePublic keys
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_EncodeDecodeNodePublic(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -112,7 +110,6 @@ func TestCompat_EncodeDecodeNodePublic(t *testing.T) {
 }
 
 // TestCompat_EncodeDecodeAccountPublic tests encoding and decoding of AccountPublic keys
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_EncodeDecodeAccountPublic(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -135,7 +132,6 @@ func TestCompat_EncodeDecodeAccountPublic(t *testing.T) {
 }
 
 // TestCompat_EncodeSeed tests seed encoding
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_EncodeSeed(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -157,7 +153,6 @@ func TestCompat_EncodeSeed(t *testing.T) {
 }
 
 // TestCompat_DecodeSeed tests seed decoding
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_DecodeSeed(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -180,7 +175,6 @@ func TestCompat_DecodeSeed(t *testing.T) {
 }
 
 // TestCompat_IsValidClassicAddress tests classic address validation
-// Reference: xrpl.js/packages/ripple-address-codec/test/xrp-codec.test.ts
 func TestCompat_IsValidClassicAddress(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -202,7 +196,6 @@ func TestCompat_IsValidClassicAddress(t *testing.T) {
 }
 
 // TestCompat_XAddressMainnet tests X-address encoding/decoding for mainnet
-// Reference: xrpl.js/packages/ripple-address-codec/test/index.test.ts
 func TestCompat_XAddressMainnet(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -243,7 +236,6 @@ func TestCompat_XAddressMainnet(t *testing.T) {
 }
 
 // TestCompat_XAddressTestnet tests X-address encoding/decoding for testnet
-// Reference: xrpl.js/packages/ripple-address-codec/test/index.test.ts
 func TestCompat_XAddressTestnet(t *testing.T) {
 	fixtures := loadFixtures(t)
 
@@ -284,7 +276,6 @@ func TestCompat_XAddressTestnet(t *testing.T) {
 }
 
 // TestCompat_InvalidXAddresses tests that invalid X-addresses are properly rejected
-// Reference: xrpl.js/packages/ripple-address-codec/test/index.test.ts
 func TestCompat_InvalidXAddresses(t *testing.T) {
 	fixtures := loadFixtures(t)
 

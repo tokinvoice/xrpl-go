@@ -154,7 +154,6 @@ func convertValue(key string, v any, uint32Fields, intFields map[string]bool) an
 }
 
 // TestCompat_EncodeTransaction tests encoding transactions
-// Reference: xrpl.js/packages/ripple-binary-codec/test/tx-encode-decode.test.ts
 func TestCompat_EncodeTransaction(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -196,7 +195,6 @@ func TestCompat_EncodeTransaction(t *testing.T) {
 }
 
 // TestCompat_DecodeTransaction tests decoding transactions
-// Reference: xrpl.js/packages/ripple-binary-codec/test/tx-encode-decode.test.ts
 func TestCompat_DecodeTransaction(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -248,7 +246,6 @@ func TestCompat_DecodeTransaction(t *testing.T) {
 }
 
 // TestCompat_AccountState tests encoding/decoding ledger entries from codec-fixtures.json
-// Reference: xrpl.js/packages/ripple-binary-codec/test/ledger.test.ts
 func TestCompat_AccountState(t *testing.T) {
 	data, err := os.ReadFile("testdata/fixtures/codec-fixtures.json")
 	require.NoError(t, err, "Failed to read codec-fixtures.json")
@@ -293,7 +290,6 @@ func TestCompat_AccountState(t *testing.T) {
 }
 
 // TestCompat_RoundTrip tests that encode(decode(binary)) == binary
-// Reference: xrpl.js/packages/ripple-binary-codec/test/binary-json.test.ts
 func TestCompat_RoundTrip(t *testing.T) {
 	testCases := []struct {
 		name       string
@@ -325,7 +321,6 @@ func TestCompat_RoundTrip(t *testing.T) {
 }
 
 // TestCompat_XCodecFixtures tests X-address handling in binary codec
-// Reference: xrpl.js/packages/ripple-binary-codec/test/fixtures/x-codec-fixtures.json
 func TestCompat_XCodecFixtures(t *testing.T) {
 	data, err := os.ReadFile("testdata/fixtures/x-codec-fixtures.json")
 	if err != nil {
