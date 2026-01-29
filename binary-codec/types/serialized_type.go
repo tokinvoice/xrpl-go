@@ -62,10 +62,6 @@ func GetSerializedType(t string) SerializedType {
 		return &Currency{}
 	case "Number":
 		return &Number{}
-	case "Int32":
-		return &Int32{}
-	case "Int64":
-		return &Int64Type{}
 	}
 	return nil
 }

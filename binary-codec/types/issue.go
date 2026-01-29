@@ -101,7 +101,7 @@ func (i *Issue) FromJSON(json any) ([]byte, error) {
 // - IOU: 40 bytes (currency + issuer)
 // - MPT: 44 bytes (issuer account + NO_ACCOUNT marker + sequence)
 // The opts parameter is ignored as length is determined automatically.
-func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
+func (i *Issue) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 	// Step 1: Read first 20 bytes (currency for XRP/IOU, or issuer account for MPT)
 	currencyOrAccount, err := p.ReadBytes(20)
 	if err != nil {
@@ -135,18 +135,15 @@ func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
 		binary.BigEndian.PutUint32(seqBE, sequence)
 
 		// mpt_issuance_id = sequence (BE) + issuer account
-		mptID := append(seqBE, currencyOrAccount...)
+		seqBE = append(seqBE, currencyOrAccount...)
 		return map[string]any{
-			"mpt_issuance_id": strings.ToUpper(hex.EncodeToString(mptID)),
+			"mpt_issuance_id": strings.ToUpper(hex.EncodeToString(seqBE)),
 		}, nil
 	}
 
 	// Step 5: IOU case - decode currency and issuer
 	// currencyOrAccount contains the currency bytes
-	currencyStr, err := decodeCurrencyBytes(currencyOrAccount)
-	if err != nil {
-		return nil, err
-	}
+	currencyStr := decodeCurrencyBytes(currencyOrAccount)
 
 	// issuerOrNoAccount contains the issuer bytes
 	address, err := addresscodec.Encode(issuerOrNoAccount, []byte{addresscodec.AccountAddressPrefix}, addresscodec.AccountAddressLength)
@@ -161,9 +158,9 @@ func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
 }
 
 // decodeCurrencyBytes decodes a 20-byte currency into its string representation.
-func decodeCurrencyBytes(currencyBytes []byte) (string, error) {
+func decodeCurrencyBytes(currencyBytes []byte) string {
 	if bytes.Equal(currencyBytes, XRPBytes) {
-		return "XRP", nil
+		return "XRP"
 	}
 
 	// Check if bytes has exactly 3 non-zero bytes at positions 12-14 (standard currency code)
@@ -182,11 +179,11 @@ func decodeCurrencyBytes(currencyBytes []byte) (string, error) {
 	}
 
 	if nonZeroCount == 3 {
-		return currencyStr, nil
+		return currencyStr
 	}
 
 	// Return hex-encoded currency for non-standard codes
-	return strings.ToUpper(hex.EncodeToString(currencyBytes)), nil
+	return strings.ToUpper(hex.EncodeToString(currencyBytes))
 }
 
 func (i *Issue) isIssueObject(obj any) bool {

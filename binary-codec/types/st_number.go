@@ -17,7 +17,7 @@ type Number struct{}
 
 // Constants for mantissa and exponent normalization per XRPL Number spec.
 var (
-	minMantissa        = big.NewInt(1000000000000000)  // 10^15
+	minMantissa        = big.NewInt(1000000000000000) // 10^15
 	maxMantissa        = big.NewInt(9999999999999999) // 10^16 - 1
 	minExponent        = int32(-32768)
 	maxExponent        = int32(32768)
@@ -101,6 +101,7 @@ func parseAndNormalize(s string) (*big.Int, int32, error) {
 
 	if fracPart != "" {
 		mantissaStr += fracPart
+		//nolint:gosec // G115: integer overflow conversion int -> int32 (gosec)
 		exponent -= int32(len(fracPart))
 	}
 
@@ -110,6 +111,7 @@ func parseAndNormalize(s string) (*big.Int, int32, error) {
 		if err != nil {
 			return nil, 0, err
 		}
+		//nolint:gosec // G115: integer overflow conversion int64 -> int32 (gosec)
 		exponent += int32(expVal)
 	}
 
@@ -215,18 +217,22 @@ func formatDecimal(mantissa int64, exponent int32) string {
 // Helper functions for big-endian signed integer I/O
 
 func writeInt64BE(buf []byte, v int64, offset int) {
+	//nolint:gosec // G115: integer overflow conversion int64 -> uint64 (gosec)
 	binary.BigEndian.PutUint64(buf[offset:], uint64(v))
 }
 
 func writeInt32BE(buf []byte, v int32, offset int) {
+	//nolint:gosec // G115: integer overflow conversion int32 -> uint32 (gosec)
 	binary.BigEndian.PutUint32(buf[offset:], uint32(v))
 }
 
 func readInt64BE(buf []byte, offset int) int64 {
+	//nolint:gosec // G115: integer overflow conversion uint64 -> int64 (gosec)
 	return int64(binary.BigEndian.Uint64(buf[offset:]))
 }
 
 func readInt32BE(buf []byte, offset int) int32 {
+	//nolint:gosec // G115: integer overflow conversion uint32 -> int32 (gosec)
 	return int32(binary.BigEndian.Uint32(buf[offset:]))
 }
 
