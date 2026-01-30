@@ -74,6 +74,10 @@ func IsStringNumericUint(s string, base, bitSize int) bool {
 	return err == nil
 }
 
+// xrplNumberPattern matches optional sign, digits, optional decimal, optional exponent (scientific).
+// Allows leading zeros; rejects empty string, lone sign, or missing digits.
+var xrplNumberPattern = regexp.MustCompile(`^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$`)
+
 // IsXRPLNumber checks if the value is a valid XRPL number string.
 // XRPL numbers are strings that represent numbers, including scientific notation.
 func IsXRPLNumber(value interface{}) bool {
@@ -81,11 +85,5 @@ func IsXRPLNumber(value interface{}) bool {
 	if !ok {
 		return false
 	}
-	str = strings.TrimSpace(str)
-	if str == "" {
-		return false
-	}
-	// Check if it's a valid number (allows decimal, scientific notation, etc.)
-	_, err := strconv.ParseFloat(str, 64)
-	return err == nil
+	return xrplNumberPattern.MatchString(strings.TrimSpace(str))
 }

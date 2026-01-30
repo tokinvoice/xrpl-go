@@ -31,8 +31,7 @@ func Vault(address string, sequence uint32) (string, error) {
 		return "", fmt.Errorf("failed to decode hex payload: %w", err)
 	}
 
-	hash := crypto.Sha512Half(payloadBytes)
-	return strings.ToUpper(hex.EncodeToString(hash)), nil
+	return EncodeToHashString(payloadBytes), nil
 }
 
 // LoanBroker computes the hash of a LoanBroker ledger entry.
@@ -57,8 +56,7 @@ func LoanBroker(address string, sequence uint32) (string, error) {
 		return "", fmt.Errorf("failed to decode hex payload: %w", err)
 	}
 
-	hash := crypto.Sha512Half(payloadBytes)
-	return strings.ToUpper(hex.EncodeToString(hash)), nil
+	return EncodeToHashString(payloadBytes), nil
 }
 
 // Loan computes the hash of a Loan ledger entry.
@@ -77,6 +75,10 @@ func Loan(loanBrokerID string, loanSequence uint32) (string, error) {
 		return "", fmt.Errorf("failed to decode hex payload: %w", err)
 	}
 
-	hash := crypto.Sha512Half(payloadBytes)
-	return strings.ToUpper(hex.EncodeToString(hash)), nil
+	return EncodeToHashString(payloadBytes), nil
+}
+
+// EncodeToHashString computes SHA-512Half of the given bytes and returns it as an uppercase hex string.
+func EncodeToHashString(bytes []byte) string {
+	return strings.ToUpper(hex.EncodeToString(crypto.Sha512Half(bytes)))
 }

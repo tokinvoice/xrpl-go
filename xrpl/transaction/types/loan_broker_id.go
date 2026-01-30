@@ -5,7 +5,7 @@ package types
 
 // LoanBrokerID represents a Loan Broker identifier.
 // It must be a 64 characters hexadecimal string.
-type LoanBrokerID string
+type LoanBrokerID Hash256
 
 // Value returns the string representation of LoanBrokerID.
 func (l *LoanBrokerID) Value() string {
