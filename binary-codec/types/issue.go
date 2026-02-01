@@ -1,6 +1,8 @@
 package types
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"strings"
@@ -12,12 +14,12 @@ import (
 const (
 	// MPTIssuanceIDBytesLength is the number of bytes for an MPT issuance ID.
 	MPTIssuanceIDBytesLength = 24
-	// CurrencyBytesLength is the number of bytes for a currency code.
-	CurrencyBytesLength = 20
-	// AccountIDBytesLength is the number of bytes for an account ID.
-	AccountIDBytesLength = 20
-	// MPTSequenceBytesLength is the number of bytes for an MPT sequence.
-	MPTSequenceBytesLength = 4
+)
+
+var (
+	// NoAccountBytes is the marker used to identify MPT issues in the binary format.
+	// This is the special account ID "0000000000000000000000000000000000000001".
+	NoAccountBytes = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
 )
 
 var (
@@ -32,9 +34,6 @@ var (
 	ErrMissingIssueLengthOption = errors.New("missing length option for Issue.ToJSON")
 	// XRPBytes is the serialized byte representation for native XRP (zero-value currency issuer).
 	XRPBytes = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-	// NoAccountBytes is the serialized byte representation for the "no account" placeholder used in MPT.
-	// This is 0x0000000000000000000000000000000000000001
-	NoAccountBytes = []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
 )
 
 // Issue represents an XRPL Issue, which is essentially an AccountID.
@@ -96,79 +95,57 @@ func (i *Issue) FromJSON(json any) ([]byte, error) {
 	return currencyBytes, nil
 }
 
-// ToJSON converts serialized Issue bytes back to a JSON object.
-// The Issue type is self-describing:
-// - XRP: 20 bytes of zeros
-// - IOU: 20 bytes currency + 20 bytes issuer account
-// - MPT: 20 bytes account + 20 bytes NO_ACCOUNT + 4 bytes sequence
-// The opts parameter is optional and can be used to specify the length hint.
-func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
-	currencyCodec := &Currency{}
-
-	// If a length hint is provided and it's MPT length, handle MPT directly
-	if len(opts) > 0 && opts[0] == MPTIssuanceIDBytesLength {
-		return i.parseMPTIssue(p)
-	}
-
-	// Read the first 20 bytes (currency or account for MPT)
-	currencyOrAccount, err := p.ReadBytes(CurrencyBytesLength)
+// ToJSON converts a binary Issue representation back to a JSON object.
+// It self-determines the length by progressively reading and checking the data:
+// - XRP: 20 bytes (currency only, all zeros)
+// - IOU: 40 bytes (currency + issuer)
+// - MPT: 44 bytes (issuer account + NO_ACCOUNT marker + sequence)
+// The opts parameter is ignored as length is determined automatically.
+func (i *Issue) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
+	// Step 1: Read first 20 bytes (currency for XRP/IOU, or issuer account for MPT)
+	currencyOrAccount, err := p.ReadBytes(20)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if it's XRP (all zeros)
-	isXRP := true
-	for _, b := range currencyOrAccount {
-		if b != 0 {
-			isXRP = false
-			break
-		}
-	}
-
-	if isXRP {
+	// Step 2: Check if it's XRP (all zeros)
+	if bytes.Equal(currencyOrAccount, XRPBytes) {
 		return map[string]any{
 			"currency": "XRP",
 		}, nil
 	}
 
-	// Read the next 20 bytes (issuer account or NO_ACCOUNT for MPT)
-	issuerOrNoAccount, err := p.ReadBytes(AccountIDBytesLength)
+	// Step 3: Read next 20 bytes (issuer for IOU, or NO_ACCOUNT marker for MPT)
+	issuerOrNoAccount, err := p.ReadBytes(20)
 	if err != nil {
 		return nil, err
 	}
 
-	// Check if it's NO_ACCOUNT (MPT indicator)
-	isNoAccount := true
-	for idx, b := range issuerOrNoAccount {
-		if b != NoAccountBytes[idx] {
-			isNoAccount = false
-			break
-		}
-	}
-
-	if isNoAccount {
-		// This is an MPT - read the 4-byte sequence
-		sequence, err := p.ReadBytes(MPTSequenceBytesLength)
+	// Step 4: Check if it's MPT (NO_ACCOUNT marker)
+	if bytes.Equal(issuerOrNoAccount, NoAccountBytes) {
+		// MPT case - read 4 more bytes for sequence (stored in little-endian)
+		sequenceBytes, err := p.ReadBytes(4)
 		if err != nil {
 			return nil, err
 		}
 
-		// Convert from little-endian to big-endian for the mpt_issuance_id
-		// The mpt_issuance_id format is: sequence (4 bytes big-endian) + account (20 bytes)
-		sequenceBE := []byte{sequence[3], sequence[2], sequence[1], sequence[0]}
-		mptIssuanceID := append(sequenceBE, currencyOrAccount...)
+		// Convert sequence from little-endian to big-endian for mpt_issuance_id
+		sequence := binary.LittleEndian.Uint32(sequenceBytes)
+		seqBE := make([]byte, 4)
+		binary.BigEndian.PutUint32(seqBE, sequence)
 
+		// mpt_issuance_id = sequence (BE) + issuer account
+		seqBE = append(seqBE, currencyOrAccount...)
 		return map[string]any{
-			"mpt_issuance_id": strings.ToUpper(hex.EncodeToString(mptIssuanceID)),
+			"mpt_issuance_id": strings.ToUpper(hex.EncodeToString(seqBE)),
 		}, nil
 	}
 
-	// This is an IOU - convert currency bytes to string
-	currencyStr, err := currencyCodec.bytesToCurrencyString(currencyOrAccount)
-	if err != nil {
-		return nil, err
-	}
+	// Step 5: IOU case - decode currency and issuer
+	// currencyOrAccount contains the currency bytes
+	currencyStr := decodeCurrencyBytes(currencyOrAccount)
 
+	// issuerOrNoAccount contains the issuer bytes
 	address, err := addresscodec.Encode(issuerOrNoAccount, []byte{addresscodec.AccountAddressPrefix}, addresscodec.AccountAddressLength)
 	if err != nil {
 		return nil, err
@@ -180,18 +157,33 @@ func (i *Issue) ToJSON(p interfaces.BinaryParser, opts ...int) (any, error) {
 	}, nil
 }
 
-// parseMPTIssue parses an MPT issue from the binary parser.
-func (i *Issue) parseMPTIssue(p interfaces.BinaryParser) (any, error) {
-	b, err := p.ReadBytes(MPTIssuanceIDBytesLength)
-	if err != nil {
-		return nil, err
+// decodeCurrencyBytes decodes a 20-byte currency into its string representation.
+func decodeCurrencyBytes(currencyBytes []byte) string {
+	if bytes.Equal(currencyBytes, XRPBytes) {
+		return "XRP"
 	}
 
-	id := hex.EncodeToString(b)
+	// Check if bytes has exactly 3 non-zero bytes at positions 12-14 (standard currency code)
+	nonZeroCount := 0
+	var currencyStr string
+	for i := 0; i < len(currencyBytes); i++ {
+		if currencyBytes[i] != 0 {
+			if i >= 12 && i <= 14 {
+				nonZeroCount++
+				currencyStr += string(currencyBytes[i])
+			} else {
+				nonZeroCount = 0
+				break
+			}
+		}
+	}
 
-	return map[string]any{
-		"mpt_issuance_id": strings.ToUpper(id),
-	}, nil
+	if nonZeroCount == 3 {
+		return currencyStr
+	}
+
+	// Return hex-encoded currency for non-standard codes
+	return strings.ToUpper(hex.EncodeToString(currencyBytes))
 }
 
 func (i *Issue) isIssueObject(obj any) bool {
