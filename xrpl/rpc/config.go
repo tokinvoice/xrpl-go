@@ -112,6 +112,7 @@ func NewClientConfig(url string, opts ...ConfigOpt) (*Config, error) {
 
 		maxFeeXRP:  common.DefaultMaxFeeXRP,
 		feeCushion: common.DefaultFeeCushion,
+		timeout:    common.DefaultTimeout,
 	}
 
 	for _, opt := range opts {
