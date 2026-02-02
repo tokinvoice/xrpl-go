@@ -511,17 +511,17 @@ func TestIsMap(t *testing.T) {
 			name: "pass - Valid map",
 			m:    map[string]interface{}{},
 			want: true,
-		}
+		},
 		{
 			name: "pass - Invalid map",
 			m:    "Invalid map",
 			want: false,
-		}
+		},
 		{
 			name: "pass - Invalid map (2)",
 			m:    int(2),
 			want: false,
-		}
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
