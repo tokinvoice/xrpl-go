@@ -33,8 +33,8 @@ var IntegrationWebsocketEnvs = map[EnvKey]Env{
 		FaucetProvider: faucet.NewDevnetFaucetProvider(),
 	},
 	LendingDevnetEnv: {
-		Host:           "wss://lend.devnet.rippletest.net:51233",
-		FaucetProvider: faucet.NewLendingDevnetFaucetProvider(),
+		Host:           "wss://s.devnet.rippletest.net:51233",
+		FaucetProvider: faucet.NewDevnetFaucetProvider(),
 	},
 }
 

@@ -34,7 +34,8 @@ func TestIntegrationVault_Websocket(t *testing.T) {
 		assetsMax := uint64(1000000000000) // 1M XRP in drops
 		vaultCreate := &transaction.VaultCreate{
 			BaseTx: transaction.BaseTx{
-				Account: owner.GetAddress(),
+				Account:   owner.GetAddress(),
+				NetworkID: 2,
 			},
 			Asset:            ledger.Asset{Currency: "XRP"},
 			AssetsMaximum:    &assetsMax,
@@ -162,4 +163,3 @@ func TestIntegrationVaultFullCycle_Websocket(t *testing.T) {
 		t.Logf("VaultSet succeeded")
 	})
 }
-
