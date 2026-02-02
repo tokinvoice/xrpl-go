@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### xrpl
 
+- `EncodeMPTokenMetadata`, `DecodeMPTokenMetadata` and `ValidateMPTokenMetadata` utils to encode, decode and validate MPTokenMetadata as per XLS-89 standard.
 - `AuthorizeChannel` to authorize a payment channel.
 - Added `Loan` and `LoanBroker` ledger entry types for the lending protocol.
 - Added loan transaction types:

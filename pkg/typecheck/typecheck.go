@@ -74,6 +74,12 @@ func IsStringNumericUint(s string, base, bitSize int) bool {
 	return err == nil
 }
 
+// IsMap checks if the given interface is a map.
+func IsMap(m any) bool {
+	_, ok := m.(map[string]any)
+	return ok
+}
+
 // xrplNumberPattern matches optional sign, digits, optional decimal, optional exponent (scientific).
 // Allows leading zeros; rejects empty string, lone sign, or missing digits.
 var xrplNumberPattern = regexp.MustCompile(`^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$`)
