@@ -82,8 +82,7 @@ func (i *Issue) FromJSON(json any) ([]byte, error) {
 		return nil, err
 	}
 
-	issuer, ok := mapObj["issuer"]
-	if issuerString, okstring := issuer.(string); ok && okstring {
+	if issuerString, okstring := mapObj["issuer"].(string); ok && okstring {
 		_, issuerBytes, err := addresscodec.DecodeClassicAddressToAccountID(issuerString)
 		if err != nil {
 			return nil, err
@@ -110,6 +109,10 @@ func (i *Issue) ToJSON(p interfaces.BinaryParser, _ ...int) (any, error) {
 
 	// Step 2: Check if it's XRP (all zeros)
 	if bytes.Equal(currencyOrAccount, XRPBytes) {
+		// Consume the next 20 bytes (issuer) which should also be all zeros for XRP
+		if _, err := p.ReadBytes(20); err != nil {
+			return nil, err
+		}
 		return map[string]any{
 			"currency": "XRP",
 		}, nil
