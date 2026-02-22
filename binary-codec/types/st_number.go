@@ -17,8 +17,9 @@ type Number struct{}
 
 // Constants for mantissa and exponent normalization per XRPL Number spec.
 var (
-	minMantissa        = big.NewInt(1000000000000000000)                   // 10^18
-	maxMantissa, _     = new(big.Int).SetString("9223372036854775807", 10) // math.MaxInt64, since it must fit in int64
+	minMantissa        = big.NewInt(1000000000000000000)                   // 10^18 (matches ripple-binary-codec JS)
+	maxMantissa, _     = new(big.Int).SetString("9999999999999999999", 10) // 10^19 - 1 (matches ripple-binary-codec JS)
+	maxInt64, _        = new(big.Int).SetString("9223372036854775807", 10) // 2^63 - 1, max signed 64-bit integer
 	minExponent        = int32(-32768)
 	maxExponent        = int32(32768)
 	defaultZeroExp     = int32(-2147483648) // 0x80000000
@@ -148,13 +149,39 @@ func normalize(mantissa *big.Int, exponent int32) (*big.Int, int32, error) {
 		m.Mul(m, ten)
 	}
 
-	// Scale down if too large
+	// Scale down if too large (> 10^19 - 1)
+	var lastDigit *big.Int
 	for m.Cmp(maxMantissa) > 0 {
 		if exponent >= maxExponent {
 			return nil, 0, ErrNumberOverflow
 		}
 		exponent++
+		lastDigit = new(big.Int).Mod(m, ten)
 		m.Div(m, ten)
+	}
+
+	// Additional clamp: mantissa must fit in int64 (maxInt64 = 2^63-1).
+	// maxMantissa (10^19-1) > maxInt64 (2^63-1 ≈ 9.2e18), so we may need one more reduction.
+	if m.Cmp(maxInt64) > 0 {
+		if exponent >= maxExponent {
+			return nil, 0, ErrNumberOverflow
+		}
+		exponent++
+		lastDigit = new(big.Int).Mod(m, ten)
+		m.Div(m, ten)
+	}
+
+	// Round half-up based on the last discarded digit
+	if lastDigit != nil && lastDigit.Cmp(big.NewInt(5)) >= 0 {
+		m.Add(m, big.NewInt(1))
+		// After rounding, mantissa may exceed maxInt64 again
+		if m.Cmp(maxInt64) > 0 {
+			if exponent >= maxExponent {
+				return nil, 0, ErrNumberOverflow
+			}
+			exponent++
+			m.Div(m, ten)
+		}
 	}
 
 	if isNegative {
