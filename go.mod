@@ -13,7 +13,14 @@ require (
 	github.com/ugorji/go/codec v1.2.11
 )
 
-require github.com/pkg/errors v0.9.1 // indirect
+require (
+	github.com/pkg/errors v0.9.1 // indirect
+	golang.org/x/mod v0.33.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/telemetry v0.0.0-20260209163413-e7419c687ee4 // indirect
+	golang.org/x/tools v0.42.0 // indirect
+)
 
 require (
 	github.com/golang/mock v1.6.0 // direct

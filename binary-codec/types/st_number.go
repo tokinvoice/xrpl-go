@@ -17,8 +17,8 @@ type Number struct{}
 
 // Constants for mantissa and exponent normalization per XRPL Number spec.
 var (
-	minMantissa        = big.NewInt(1000000000000000) // 10^15
-	maxMantissa        = big.NewInt(9999999999999999) // 10^16 - 1
+	minMantissa        = big.NewInt(1000000000000000000)                   // 10^18
+	maxMantissa, _     = new(big.Int).SetString("9223372036854775807", 10) // math.MaxInt64, since it must fit in int64
 	minExponent        = int32(-32768)
 	maxExponent        = int32(32768)
 	defaultZeroExp     = int32(-2147483648) // 0x80000000
